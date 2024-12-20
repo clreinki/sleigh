@@ -1,0 +1,13 @@
+{% extends "sleigh/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="text-center">
+        <div class="error mx-auto" data-text="Uh Oh">Uh Oh</div>
+        <p class="lead text-gray-800 mb-5">Error Occurred</p>
+        <p class="text-gray-500 mb-0">Something definitely went wrong - check code...</p>
+        <a href="{% url 'sleigh:index' %}">&larr; Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

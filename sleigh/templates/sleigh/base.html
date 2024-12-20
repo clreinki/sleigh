@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Sleigh</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'fontawesomefree/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{% static 'sleigh/css/sb-admin-2.min.css' %}" rel="stylesheet">
+
+    {% block extra_css%}        
+    {% endblock %}
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-sleigh"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sleigh</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item {% if request.path == '/' %}active{% endif %}">
+                <a class="nav-link" href="{% url 'sleigh:index' %}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Santa Settings
+            </div>
+
+            <!-- Nav Item - Config Collapse Menu -->
+            <li class="nav-item {% if 'config' in request.resolver_match.url_name %}active{% endif %}">
+                <a class="nav-link {% if not 'config' in request.resolver_match.url_name %}collapsed{% endif %}" href="#" data-toggle="collapse" data-target="#collapseConfigs"
+                    aria-expanded="{% if 'config' in request.resolver_match.url_name %}true{% else %}false{% endif %}" aria-controls="collapseConfigs">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configs</span>
+                </a>
+                <div id="collapseConfigs" class="collapse {% if 'config' in request.resolver_match.url_name %}show{% endif %}" aria-labelledby="headingConfigs" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="btn btn-success btn-sm collapse-item mb-1" href="{% url 'sleigh:config' %}">Add New</a>
+                        {% for config in configs %}
+                        <a class="collapse-item mb-1" href="{% url 'sleigh:config' config.id %}">{{ config.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </li>
+
+            <!-- Nav Item - Profile Collapse Menu -->
+            <li class="nav-item {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                <a class="nav-link {% if not 'profile' in request.resolver_match.url_name %}collapsed{% endif %}" href="#" data-toggle="collapse" data-target="#collapseProfiles"
+                    aria-expanded="{% if 'profile' in request.resolver_match.url_name %}true{% else %}false{% endif %}" aria-controls="collapseProfiles">
+                    <i class="fas fa-fw fa-scroll"></i>
+                    <span>Profiles</span>
+                </a>
+                <div id="collapseProfiles" class="collapse {% if 'profile' in request.resolver_match.url_name %}show{% endif %}" aria-labelledby="headingProfiles"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="btn btn-success btn-sm collapse-item mb-1" href="{% url 'sleigh:profile' %}">Add New</a>
+                        {% for profile in profiles %}
+                        <a class="collapse-item mb-1" href="{% url 'sleigh:profile' profile.id %}">{{ profile.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Reporting
+            </div>
+
+            <!-- Nav Item - Devices -->
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-fw fa-laptop"></i>
+                    <span>Device Inventory</span></a>
+            </li>
+
+            <!-- Nav Item - Logs -->
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-fw fa-file-lines"></i>
+                    <span>Sleigh Changelog</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Settings
+            </div>
+
+            <!-- Nav Item - Users -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'sleigh:usermgmt' %}">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>User Management</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+
+                        <!--<div class="topbar-divider d-none d-sm-block"></div>-->
+
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ user.get_full_name }}</span>
+                                <img class="img-profile rounded-circle"
+                                    src="{% static 'sleigh/img/undraw_profile.svg' %}">
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="userDropdown">
+                                {% if user.get_full_name %}
+                                <a class="dropdown-item" href="{% url 'password_change' %}">
+                                    <i class="fas fa-unlock-keyhole fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Change Password
+                                </a>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                                {% else %}
+                                <a class="dropdown-item" href="{% url 'login' %}">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Login
+                                </a>
+                                {% endif %}
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                {% block content %}{% endblock %}
+
+            </div>
+            <!-- End of Main Content -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{% static 'sleigh/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'sleigh/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{% static 'sleigh/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{% static 'sleigh/js/sb-admin-2.min.js' %}"></script>
+
+    {%block extra_js %}
+    {% endblock %}
+</body>
+
+</html>

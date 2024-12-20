@@ -1,0 +1,52 @@
+{% extends "sleigh/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">Config Editor</h1>
+
+    <div class="row">
+
+        <div class="col-lg-6">
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ name }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="configEditForm" action="{% if myconfig %}{% url 'sleigh:config' myconfig.id %}{% else %}{% url 'sleigh:config' %}{% endif %}">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    {% if form_errors %}
+                    <div class="alert alert-danger">
+                        <strong>Form Validation Errors:</strong>
+                        <ul>
+                            {% for field, errors in form_errors.items %}
+                                <li>
+                                    <strong>{{ field|capfirst }}:</strong>
+                                    {% for error in errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                        {% if myconfig.id > 1 %}
+                        <form action="{% url 'sleigh:delete_config' myconfig.id %}" method="POST" onsubmit="return confirm('Are you sure?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
