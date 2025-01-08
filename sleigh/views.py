@@ -13,7 +13,7 @@ import zlib
 import logging
 from sentry_sdk import capture_exception, capture_message
 
-from .models import Config, Profile, Rule, Device, LogEntry
+from .models import Config, Profile, Rule, Device, LogEntry, Event
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm
 from .custom import addlog, get_client_preflight, get_client_rules
 
