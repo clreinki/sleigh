@@ -51,6 +51,6 @@ def get_client_rules(serial):
             rule_data['custom_url'] = rule.custom_url
         rule_list.append(rule_data)
     response_data = {
-        "rules": rules,
+        "rules": rule_list,
     }
     return response_data

@@ -216,6 +216,9 @@ def preflight(request, serial):
             # Return a success response
             return JsonResponse(response, status=200)
 
+        except zlib.error as e:
+            capture_exception(e)
+            return JsonResponse({'error': 'Decompression error', 'details': str(e)}, status=400)
         except json.JSONDecodeError:
             # Return an error response if JSON is invalid
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -230,7 +233,9 @@ def preflight(request, serial):
 def eventupload(request, serial):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Decompress and decode the request body
+            decompressed_data = zlib.decompress(request.body, wbits=zlib.MAX_WBITS | 32)
+            data = json.loads(decompressed_data.decode('utf-8'))
             events = data.get('events', [])
             
             for event_data in events:
@@ -294,9 +299,14 @@ def ruledownload(request, serial):
 @csrf_exempt
 def postflight(request, serial):
     try:
-        data = json.loads(request.body)
+        # Decompress and decode the request body
+        decompressed_data = zlib.decompress(request.body, wbits=zlib.MAX_WBITS | 32)
+        data = json.loads(decompressed_data.decode('utf-8'))
         Device.objects.filter(serial_num=serial).update(rules_synced=data.get('rules_processed', 0))
         return HttpResponse(status=200)
+    except zlib.error as e:
+        capture_exception(e)
+        return JsonResponse({'error': 'Decompression error', 'details': str(e)}, status=400)
     except Exception as e:
         capture_exception(e)
         return JsonResponse({'error': str(e)}, status=500)
