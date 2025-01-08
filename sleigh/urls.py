@@ -26,4 +26,5 @@ urlpatterns = [
     path('preflight/<str:serial>/', views.preflight, name='preflight'),
     #path('v1/eventupload/<str:serial>/', EventUploadView.as_view(), name='eventupload'),
     path('eventupload/<str:serial>/', views.eventupload, name='eventupload'),
+    path('postflight/<str:serial>/', views.postflight, name='postflight'),
 ]
