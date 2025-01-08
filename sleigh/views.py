@@ -14,7 +14,7 @@ import logging
 from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event
-from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm
+from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm
 from .custom import addlog, get_client_preflight, get_client_rules
 
 logger = logging.getLogger('django')
@@ -137,6 +137,38 @@ def delete_rule_view(request):
         except Rule.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Rule not found.'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
+
+###### Device Management ######
+@login_required
+def device_inventory(request):
+    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
+    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
+    if request.method == 'POST':
+        # Handling form submission
+        form = DeviceObjectForm(request.POST)
+        if form.is_valid():
+            devices = form.cleaned_data['devices']
+            action = request.POST.get('action')
+            if action == 'update_config':
+                config_id = request.POST.get('config_id')
+                Device.objects.filter(serial_num__in=devices).update(config_id=config_id)
+
+            elif action == 'update_profile':
+                profile_id = request.POST.get('profile_id')
+                Device.objects.filter(serial_num__in=devices).update(profile_id=profile_id)
+    
+    form = DeviceObjectForm()
+    return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
+
+###### Sleigh Changelog ######
+@login_required
+def changelog(request):
+    """Displays changelog entries"""
+    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
+    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
+    entries = LogEntry.objects.all().order_by('-id')
+    context = {'configs': configs, 'profiles': profiles, 'entries': entries}
+    return render(request, 'sleigh/changelog.html', context)
 
 ###### User Management ######
 @login_required

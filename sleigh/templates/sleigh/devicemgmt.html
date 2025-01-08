@@ -1,0 +1,89 @@
+{% extends "sleigh/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+
+<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <form method="POST" id="deviceObjectForm" action="{% url 'sleigh:device_inventory' %}">
+    {% csrf_token %}
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 text-gray-800">Device Inventory</h1>
+            <div>
+                <div>
+                    <label for="config-select">Bulk Edit Config:</label>
+                    <select name="config_id" id="config-select">
+                        {% for config in configs %}
+                        <option value="{{ config.id }}">{{ config.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_config">Update Config</button><br>
+                </div>
+                <div class="mt-2">
+                    <label for="profile-select">Bulk Edit Profile:</label>
+                    <select name="profile_id" id="profile-select">
+                        {% for profile in profiles %}
+                        <option value="{{ profile.id }}">{{ profile.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_profile">Update Profile</button>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" id="tbldevices">
+                        <thead>
+                            <tr>
+                                <th scope="col" data-priority="1"></th>
+                                <th scope="col" data-priority="1">Serial</th>
+                                <th scope="col" data-priority="1">Primary User</th>
+                                <th scope="col" data-priority="1">OS</th>
+                                <th scope="col" data-priority="1">Model</th>
+                                <th scope="col" data-priority="1">Santa Ver</th>
+                                <th scope="col" data-priority="1">Synced Rule Count</th>
+                                <th scope="col" data-priority="1">Config</th>
+                                <th scope="col" data-priority="1">Profile</th>
+                                <th scope="col" data-priority="1">Last Connected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for dev in form.fields.devices.queryset %}
+                        <tr>
+                            <td><input type="checkbox" name="devices" value="{{ dev.serial_num }}"></td>
+                            <td>{{ dev.serial_num }}</td>
+                            <td>{{ dev.primary_user }}</td>
+                            <td>{{ dev.os_version }}</td>
+                            <td>{{ dev.model_identifier }}</td>
+                            <td>{{ dev.santa_version }}</td>
+                            <td>{{ dev.rules_synced }}</td>
+                            <td>{{ dev.config }}</td>
+                            <td>{{ dev.profile }}</td>
+                            <td>{{ dev.last_updated }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+      $('#tbldevices').DataTable({});
+    });
+</script>
+
+{% endblock %}

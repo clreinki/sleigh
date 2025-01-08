@@ -9,7 +9,7 @@ from django.utils.safestring import mark_safe
 import datetime
 from crispy_forms.helper import FormHelper
 
-from .models import Config, Profile, Rule
+from .models import Config, Profile, Rule, Device
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -63,6 +63,10 @@ class RuleAddForm(forms.ModelForm):
             self.fields['profile'].initial = profile.id
         if user:
             self.fields['created_by'].initial = user.username
+
+class DeviceObjectForm(forms.Form):
+    # Use a Device instance's ID as the checkbox value
+    devices = forms.ModelMultipleChoiceField(queryset=Device.objects.all(), widget=forms.CheckboxSelectMultiple)
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(

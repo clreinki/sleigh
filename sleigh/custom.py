@@ -2,7 +2,7 @@ from django.core.cache import cache
 import json
 import zlib
 
-from .models import Config, Profile, Rule, Device, LogEntry
+from .models import Config, Profile, Rule, Device, LogEntry, Event
 
 ################### EXTRA FUNCTIONS ###################
 def addlog(user, text):
@@ -13,12 +13,13 @@ def addlog(user, text):
 
 def get_client_preflight(serial):
     device = Device.objects.select_related('config').get(serial_num=serial)
+    full_sync_interval = device.config.full_sync_interval - 300  # Fix weird bug in Santa client that adds 300 sec
     response_data = {
         "batch_size": device.config.batch_size,
         "client_mode": device.config.client_mode,
         "allowed_path_regex": device.config.allowed_path_regex,
         "blocked_path_regex": device.config.blocked_path_regex,
-        "full_sync_interval": device.config.full_sync_interval,
+        "full_sync_interval": full_sync_interval,
         "sync_type": "clean",
         "bundles_enabled": device.config.enable_bundles,
         "enable_transitive_rules": device.config.enable_transitive_rules,

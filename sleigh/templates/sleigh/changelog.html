@@ -1,0 +1,55 @@
+{% extends "sleigh/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+
+<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 text-gray-800">Sleigh Changelog</h1>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if entries %}
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" id="tblchangelog">
+                    <thead>
+                        <tr>
+                            <th scope="col" data-priority="1">Datetime</th>
+                            <th scope="col" data-priority="1">User</th>
+                            <th scope="col" data-priority="1">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.timestamp }}</td>
+                        <td>{{ entry.user }}</td>
+                        <td>{{ entry.action }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            No entries yet!
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+      $('#tblchangelog').DataTable({});
+    });
+</script>
+
+{% endblock %}
