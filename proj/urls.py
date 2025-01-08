@@ -18,9 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from sleigh.views import CustomLoginView
 
+# Sentry error test function
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/login/", CustomLoginView.as_view(template_name="registration/login.html"), name="login"),
     path("accounts/", include("django.contrib.auth.urls")),
+    path('sentry-debug/', trigger_error),
     path('', include('sleigh.urls')),
 ]

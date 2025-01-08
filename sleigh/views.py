@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.conf import settings
 import json
 import logging
+from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm
@@ -178,8 +179,6 @@ def preflight(request, serial):
         try:
             # Parse incoming JSON data
             data = json.loads(request.body)
-            if settings.VERBOSE:
-                print(request.body)
 
             # Find or create the device by serial number
             device, created = Device.objects.update_or_create(
@@ -220,6 +219,7 @@ def preflight(request, serial):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             # Return a generic error response for other exceptions
+            capture_exception(e)
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -228,8 +228,6 @@ def preflight(request, serial):
 def eventupload(request, serial):
     if request.method == 'POST':
         try:
-            if settings.VERBOSE:
-                print(request.body)
             data = json.loads(request.body)
             events = data.get('events', [])
             
@@ -271,24 +269,29 @@ def eventupload(request, serial):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
+            capture_exception(e)
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @csrf_exempt
 def ruledownload(request, serial):
-    if settings.VERBOSE:
-        print(request.body)
-    # Determine response based on serial
-    response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
+    try:
+        # Determine response based on serial
+        response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
 
-    # Return a success response
-    return JsonResponse(response, status=200)
+        # Return a success response
+        return JsonResponse(response, status=200)
+    except Exception as e:
+        capture_exception(e)
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 def postflight(request, serial):
-    if settings.VERBOSE:
-        print(request.body)
-    data = json.loads(request.body)
-    Device.objects.filter(serial_num=serial).update(rules_synced=data.get('rules_processed', 0))
-    return HttpResponse(status=200)
+    try:
+        data = json.loads(request.body)
+        Device.objects.filter(serial_num=serial).update(rules_synced=data.get('rules_processed', 0))
+        return HttpResponse(status=200)
+    except Exception as e:
+        capture_exception(e)
+        return JsonResponse({'error': str(e)}, status=500)
