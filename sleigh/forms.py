@@ -43,11 +43,11 @@ class ProfileEditForm(ModelForm):
 class RuleAddForm(forms.ModelForm):
     class Meta:
         model = Rule
-        fields = ['rule_type', 'policy', 'identifer', 'custom_msg', 'profile', 'created_by']
+        fields = ['rule_type', 'policy', 'identifier', 'description', 'profile', 'created_by']
         widgets = {
             'profile': forms.HiddenInput(),
             'created_by': forms.HiddenInput(),
-            'custom_msg': forms.Textarea(attrs={'rows': 2}),
+            'description': forms.Textarea(attrs={'rows': 2}),
             'rule_type': forms.RadioSelect(),
             'policy': forms.RadioSelect()
         }

@@ -10,13 +10,15 @@ from django.core.cache import cache
 import json
 import logging
 
-from .models import Config, Profile, Rule, Device
+from .models import Config, Profile, Rule, Device, LogEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm
+from .custom import addlog, get_client_preflight, get_client_rules
 
 logger = logging.getLogger('django')
 
 ################### WEB UI VIEWS ###################
 
+@login_required
 def index(request):
     """The main app homepage - for creating new request"""
     configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
@@ -25,6 +27,7 @@ def index(request):
     return render(request, 'sleigh/dashboard.html', context)
 
 ###### Config Management ######
+@login_required
 def config(request, config_id=None):
     """Modify Config Settings"""
     profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
@@ -52,6 +55,7 @@ def config(request, config_id=None):
     context = {'configs': configs, 'profiles': profiles, 'name': name, 'myconfig': config, 'form': form, 'form_errors': form_errors}
     return render(request, 'sleigh/configs.html', context)
 
+@login_required
 def delete_config_view(request, config_id):
     if request.method == 'POST' and not config_id == 1:
         try:
@@ -64,6 +68,7 @@ def delete_config_view(request, config_id):
     return redirect('sleigh:index')
 
 ###### Profile Management ######
+@login_required
 def profile(request, profile_id=None):
     """Modify Config Settings"""
     configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
@@ -73,7 +78,7 @@ def profile(request, profile_id=None):
     if profile_id:
         profile = get_object_or_404(Profile, id=profile_id)
         name = profile.name
-        rules = Rule.objects.filter(profile__exact=profile_id)
+        rules = Rule.objects.filter(profile__exact=profile_id).order_by('-id')
     else:
         profile = None  # Create a new instance if no ID is provided
         name = "Add New Profile"
@@ -94,6 +99,7 @@ def profile(request, profile_id=None):
     context = {'configs': configs, 'profiles': profiles, 'name': name, 'myprofile': profile, 'profile_form': profile_form, 'rule_form': rule_form, 'form_errors': form_errors, 'rules': rules}
     return render(request, 'sleigh/profiles.html', context)
 
+@login_required
 def delete_profile_view(request, profile_id):
     if request.method == 'POST' and not profile_id == 1:
         try:
@@ -105,6 +111,7 @@ def delete_profile_view(request, profile_id):
             return HttpResponseServerError("An internal server error occurred.")
     return redirect('sleigh:index')
 
+@login_required
 def addrule(request):
     if request.method == 'POST':
         form = RuleAddForm(data=request.POST)
@@ -116,8 +123,20 @@ def addrule(request):
     else:
         return HttpResponseServerError("No data submitted")
 
+@login_required
+def delete_rule_view(request):
+    if request.method == 'POST':
+        rule_id = request.POST.get('rule_id')
+        try:
+            rule = Rule.objects.get(id=rule_id)
+            rule.delete()
+            return JsonResponse({'success': True, 'message': 'Rule deleted successfully!'})
+        except Rule.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Rule not found.'}, status=404)
+    return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
 
 ###### User Management ######
+@login_required
 def usermgmt(request):
     """Displays existing users"""
     configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
@@ -130,6 +149,7 @@ def usermgmt(request):
 class CustomLoginView(LoginView):
     authentication_form = CustomLoginForm
 
+@login_required
 def create_user_processing(request):
     form = CustomUserCreationForm(request.POST)
     if form.is_valid():
@@ -137,6 +157,7 @@ def create_user_processing(request):
         return redirect('sleigh:usermgmt')
     return render(request, 'sleigh/error.html')
 
+@login_required
 def delete_user_view(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
@@ -150,9 +171,9 @@ def delete_user_view(request):
 
 ################### SANTA VIEWS ###################
 
-@method_decorator(csrf_exempt, name='dispatch')  # Allow this view to bypass CSRF checks
-class PreflightView(View):
-    def post(self, request, serial):
+@csrf_exempt
+def preflight(request, serial):
+    if request.method == 'POST':
         try:
             # Parse incoming JSON data
             data = json.loads(request.body)
@@ -185,8 +206,11 @@ class PreflightView(View):
             else:
                 print(f"Device {serial} updated.")
 
+            # Determine response based on serial
+            response = cache.get_or_set(serial + "-config", get_client_preflight(serial), None)
+
             # Return a success response
-            return JsonResponse({'message': 'Device processed successfully'}, status=200)
+            return JsonResponse(response, status=200)
 
         except json.JSONDecodeError:
             # Return an error response if JSON is invalid
@@ -194,3 +218,68 @@ class PreflightView(View):
         except Exception as e:
             # Return a generic error response for other exceptions
             return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def eventupload(request, serial):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            events = data.get('events', [])
+            
+            for event_data in events:
+                Event.objects.create(
+                    file_sha256=event_data.get('file_sha256'),
+                    file_path=event_data.get('file_path'),
+                    file_name=event_data.get('file_name'),
+                    executing_user=event_data.get('executing_user'),
+                    execution_time=event_data.get('execution_time'),
+                    loggedin_users=event_data.get('loggedin_users'),
+                    current_sessions=event_data.get('current_sessions'),
+                    decision=event_data.get('decision'),
+                    file_bundle_id=event_data.get('file_bundle_id'),
+                    file_bundle_path=event_data.get('file_bundle_path'),
+                    file_bundle_executable_rel_path=event_data.get('file_bundle_executable_rel_path'),
+                    file_bundle_name=event_data.get('file_bundle_name'),
+                    file_bundle_version=event_data.get('file_bundle_version'),
+                    file_bundle_version_string=event_data.get('file_bundle_version_string'),
+                    file_bundle_hash=event_data.get('file_bundle_hash'),
+                    file_bundle_hash_millis=event_data.get('file_bundle_hash_millis'),
+                    file_bundle_binary_count=event_data.get('file_bundle_binary_count'),
+                    pid=event_data.get('pid'),
+                    ppid=event_data.get('ppid'),
+                    parent_name=event_data.get('parent_name'),
+                    quarantine_data_url=event_data.get('quarantine_data_url'),
+                    quarantine_referer_url=event_data.get('quarantine_referer_url'),
+                    quarantine_timestamp=event_data.get('quarantine_timestamp'),
+                    quarantine_agent_bundle_id=event_data.get('quarantine_agent_bundle_id'),
+                    signing_chain=event_data.get('signing_chain'),
+                    signing_id=event_data.get('signing_id'),
+                    team_id=event_data.get('team_id'),
+                    cdhash=event_data.get('cdhash'),
+                    serial_num=serial
+                )
+
+            return JsonResponse({'message': 'Events processed successfully'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def rule_download(request, serial):
+    # Determine response based on serial
+    response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
+
+    # Return a success response
+    return JsonResponse(response, status=200)
+
+@csrf_exempt
+def postflight(request, serial):
+    data = json.loads(request.body)
+    Device.objects.filter(serial_num=serial).update(rules_synced=data.get('rules_processed', 0))
+    return HttpResponse(status=200)
