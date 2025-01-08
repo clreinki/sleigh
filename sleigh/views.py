@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.http import Http404, JsonResponse, HttpResponse, HttpResponseServerError
 from django.core.cache import cache
+from django.conf import settings
 import json
 import logging
 
@@ -177,6 +178,8 @@ def preflight(request, serial):
         try:
             # Parse incoming JSON data
             data = json.loads(request.body)
+            if settings.VERBOSE:
+                print(request.body)
 
             # Find or create the device by serial number
             device, created = Device.objects.update_or_create(
@@ -195,7 +198,7 @@ def preflight(request, serial):
                     'teamid_rule_count': data.get('teamid_rule_count', 0),
                     'signingid_rule_count': data.get('signingid_rule_count', 0),
                     'cdhash_rule_count': data.get('cdhash_rule_count', 0),
-                    'client_mode': data.get('client_mode', ''),
+                    'client_mode': data.get('client_mode', 'MONITOR'),
                     'request_clean_sync': data.get('request_clean_sync', True),
                 },
             )
@@ -225,6 +228,8 @@ def preflight(request, serial):
 def eventupload(request, serial):
     if request.method == 'POST':
         try:
+            if settings.VERBOSE:
+                print(request.body)
             data = json.loads(request.body)
             events = data.get('events', [])
             
@@ -272,6 +277,8 @@ def eventupload(request, serial):
 
 @csrf_exempt
 def ruledownload(request, serial):
+    if settings.VERBOSE:
+        print(request.body)
     # Determine response based on serial
     response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
 
@@ -280,6 +287,8 @@ def ruledownload(request, serial):
 
 @csrf_exempt
 def postflight(request, serial):
+    if settings.VERBOSE:
+        print(request.body)
     data = json.loads(request.body)
     Device.objects.filter(serial_num=serial).update(rules_synced=data.get('rules_processed', 0))
     return HttpResponse(status=200)

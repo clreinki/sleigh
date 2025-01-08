@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
+VERBOSE = config('VERBOSE', cast=bool, default=False)
 CACHETYPE = config('CACHETYPE', default="none")
 
 if DEBUG:
