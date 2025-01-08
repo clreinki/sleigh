@@ -43,7 +43,7 @@ class ProfileEditForm(ModelForm):
 class RuleAddForm(forms.ModelForm):
     class Meta:
         model = Rule
-        fields = ['rule_type', 'policy', 'identifier', 'description', 'profile', 'created_by']
+        fields = ['policy', 'rule_type', 'identifier', 'description', 'profile', 'created_by']
         widgets = {
             'profile': forms.HiddenInput(),
             'created_by': forms.HiddenInput(),

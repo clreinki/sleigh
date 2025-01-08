@@ -1,0 +1,27 @@
+[
+{
+    "model": "sleigh.config",
+    "pk": 1,
+    "fields": {
+        "name": "Default Config",
+        "description": "Default config for all new devices",
+        "enable_bundles": false,
+        "enable_transitive_rules": false,
+        "batch_size": 100,
+        "full_sync_interval": 600,
+        "client_mode": "MONITOR",
+        "allowed_path_regex": null,
+        "blocked_path_regex": null,
+        "block_usb_mount": false
+    }
+},
+{
+    "model": "sleigh.profile",
+    "pk": 1,
+    "fields": {
+        "name": "Default Profile",
+        "description": "Default profile for all devices",
+        "standalone": false
+    }
+}
+]

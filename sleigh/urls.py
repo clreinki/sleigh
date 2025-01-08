@@ -23,8 +23,8 @@ urlpatterns = [
     path('usermgmt/', views.usermgmt, name='usermgmt'),
     path('createuser/', views.create_user_processing, name='create_user_processing'),
     path('delete-user/', views.delete_user_view, name='delete_user'),
-    path('preflight/<str:serial>/', views.preflight, name='preflight'),
-    #path('v1/eventupload/<str:serial>/', EventUploadView.as_view(), name='eventupload'),
-    path('eventupload/<str:serial>/', views.eventupload, name='eventupload'),
-    path('postflight/<str:serial>/', views.postflight, name='postflight'),
+    path('santa/preflight/<str:serial>/', views.preflight, name='preflight'),
+    path('santa/ruledownload/<str:serial>/', views.ruledownload, name='ruledownload'),
+    path('santa/eventupload/<str:serial>/', views.eventupload, name='eventupload'),
+    path('santa/postflight/<str:serial>/', views.postflight, name='postflight'),
 ]

@@ -271,7 +271,7 @@ def eventupload(request, serial):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 @csrf_exempt
-def rule_download(request, serial):
+def ruledownload(request, serial):
     # Determine response based on serial
     response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
 
