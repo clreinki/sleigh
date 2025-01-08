@@ -9,6 +9,7 @@ from django.http import Http404, JsonResponse, HttpResponse, HttpResponseServerE
 from django.core.cache import cache
 from django.conf import settings
 import json
+import zlib
 import logging
 from sentry_sdk import capture_exception, capture_message
 
@@ -177,8 +178,9 @@ def delete_user_view(request):
 def preflight(request, serial):
     if request.method == 'POST':
         try:
-            # Parse incoming JSON data
-            data = json.loads(request.body)
+            # Decompress and decode the request body
+            decompressed_data = zlib.decompress(request.body, wbits=zlib.MAX_WBITS | 32)
+            data = json.loads(decompressed_data.decode('utf-8'))
 
             # Find or create the device by serial number
             device, created = Device.objects.update_or_create(
@@ -265,8 +267,11 @@ def eventupload(request, serial):
                 )
 
             return JsonResponse({'message': 'Events processed successfully'}, status=200)
-
+        except zlib.error as e:
+            capture_exception(e)
+            return JsonResponse({'error': 'Decompression error', 'details': str(e)}, status=400)
         except json.JSONDecodeError:
+            capture_exception(e)
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             capture_exception(e)

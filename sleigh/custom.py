@@ -1,5 +1,6 @@
 from django.core.cache import cache
 import json
+import zlib
 
 from .models import Config, Profile, Rule, Device, LogEntry
 
