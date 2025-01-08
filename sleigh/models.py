@@ -78,7 +78,7 @@ class Device(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.SET_DEFAULT, default=1)
 
 class Event(models.Model):
-    file_sha256 = models.CharField(max_length=64, unique=True)
+    file_sha256 = models.CharField(max_length=64)
     file_path = models.TextField()
     file_name = models.CharField(max_length=255)
     executing_user = models.CharField(max_length=255, blank=True, null=True)
