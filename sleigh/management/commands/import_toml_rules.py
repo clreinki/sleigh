@@ -1,7 +1,7 @@
 import requests
 import toml
 from django.core.management.base import BaseCommand
-from myapp.models import Rule
+from sleigh.models import Rule
 from django.utils import timezone
 
 class Command(BaseCommand):
