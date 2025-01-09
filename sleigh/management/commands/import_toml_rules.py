@@ -1,7 +1,7 @@
 import requests
 import toml
 from django.core.management.base import BaseCommand
-from sleigh.models import Rule
+from sleigh.models import Rule, Profile
 from django.utils import timezone
 
 class Command(BaseCommand):
@@ -19,6 +19,7 @@ class Command(BaseCommand):
             toml_data = toml.loads(response.text)
 
             # Iterate over the rules and create Rule instances
+            profile = Profile.objects.get(id=1)
             for rule_data in toml_data['rules']:
                 Rule.objects.create(
                     description=rule_data.get('custom_msg', ''),
@@ -28,7 +29,7 @@ class Command(BaseCommand):
                     custom_msg=rule_data.get('custom_msg', None),
                     custom_url=rule_data.get('custom_url', None),
                     date_created=timezone.now(),
-                    profile=1
+                    profile=profile
                 )
 
             self.stdout.write(self.style.SUCCESS('Rules imported successfully!'))
