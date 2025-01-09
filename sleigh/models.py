@@ -109,6 +109,7 @@ class Event(models.Model):
     cdhash = models.CharField(max_length=64, blank=True, null=True)
     serial_num = models.CharField(max_length=16)
     ignored = models.BooleanField(default=False)
+    uniqueid = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"({self.decision}) {self.serial_num} - {self.file_sha256}"

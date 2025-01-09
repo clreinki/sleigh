@@ -69,8 +69,8 @@ class DeviceObjectForm(forms.Form):
     devices = forms.ModelMultipleChoiceField(queryset=Device.objects.all(), widget=forms.CheckboxSelectMultiple)
 
 class IgnoreEventForm(forms.Form):
-    # Use a Event instance's file_bundle_id as the checkbox value
-    events = forms.ModelMultipleChoiceField(queryset=Event.objects.filter(ignored=False).order_by('-id')[:500], widget=forms.CheckboxSelectMultiple)
+    # Use a Event instance's id as the checkbox value
+    events = forms.ModelMultipleChoiceField(queryset=Event.objects.filter(ignored=False).order_by('-id'), widget=forms.CheckboxSelectMultiple)
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(

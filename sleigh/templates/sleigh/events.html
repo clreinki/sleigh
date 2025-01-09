@@ -33,7 +33,7 @@
                         <tbody>
                         {% for e in form.fields.events.queryset %}
                         <tr>
-                            <td><input type="checkbox" name="file_bundle_id" class="checkbox-item" value="{{ e.file_bundle_id }}"></td>
+                            <td><input type="checkbox" name="events" class="checkbox-item" value="{{ e.id }}"></td>
                             <td>{{ e.timestamp|date:"Y/m/d H:i:s" }}</td>
                             <td>{{ e.decision }}</td>
                             <td>{{ e.executing_user }}</td>

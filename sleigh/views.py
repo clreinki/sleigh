@@ -50,7 +50,8 @@ def config(request, config_id=None):
         if form.is_valid():
             saved_config = form.save()
             cache.delete("cache_allconfigs")
-            addlog(request.user,f"Updated Config #{saved_config.id}")
+            config = Config.objects.get(id=saved_config.id)
+            addlog(request.user,f"Updated Config {config.name}")
             return redirect('sleigh:config', config_id=saved_config.id)
         else:
             form_errors = form.errors
@@ -95,7 +96,8 @@ def profile(request, profile_id=None):
         if profile_form.is_valid():
             saved_profile = profile_form.save()
             cache.delete("cache_allprofiles")
-            addlog(request.user,f"Updated Profile #{saved_profile.id}")
+            profile = Profile.objects.get(id=saved_profile.id)
+            addlog(request.user,f"Updated Profile {profile.name}")
             return redirect('sleigh:profile', profile_id=saved_profile.id)
         else:
             form_errors = profile_form.errors
@@ -158,12 +160,16 @@ def device_inventory(request):
             if action == 'update_config':
                 config_id = request.POST.get('config_id')
                 Device.objects.filter(serial_num__in=devices).update(config_id=config_id)
-                addlog(request.user,f"Updated assigned config to {config_id} for: {devices}")
+                config = Config.objects.get(id=config_id)
+                for device in devices:
+                    addlog(request.user,f"Updated assigned config to {config.name} for {device.serial_num}")
 
             elif action == 'update_profile':
                 profile_id = request.POST.get('profile_id')
                 Device.objects.filter(serial_num__in=devices).update(profile_id=profile_id)
-                addlog(request.user,f"Updated assigned profile to {profile_id} for: {devices}")
+                profile = Profile.objects.get(id=profile_id)
+                for device in devices:
+                    addlog(request.user,f"Updated assigned profile to {profile.name} for {device.serial_num}")
     
     form = DeviceObjectForm()
     return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
@@ -177,14 +183,19 @@ def events(request):
         # Handling form submission
         form = IgnoreEventForm(request.POST)
         if form.is_valid():
+            print("Form valid")
             events = form.cleaned_data['events']
-            Event.objects.filter(file_bundle_id__in=events).update(ignored=True)
-            ignored_entry, created = IgnoredEntry.objects.get_or_create(
-                file_bundle_id=file_bundle_id
-            )
+            for event in events:
+                Event.objects.filter(file_bundle_id=event.file_bundle_id).update(ignored=True)
+                ignored_entry, created = IgnoredEntry.objects.get_or_create(
+                    file_bundle_id=event.file_bundle_id
+                )
 
-            if created:
-                addlog(request.user, f"New ignored entry created with file_bundle_id: {file_bundle_id}")
+                if created:
+                    addlog(request.user, f"New ignored entry created with file_bundle_id: {event.file_bundle_id}")
+        else:
+            print("Form not valid")
+            print(form.errors)
     
     form = IgnoreEventForm()
     return render(request, 'sleigh/events.html', {'configs': configs, 'profiles': profiles, 'form': form})
@@ -309,37 +320,43 @@ def eventupload(request, serial):
                 else:
                     ignored = False
 
-                Event.objects.create(
-                    file_sha256=event_data.get('file_sha256'),
-                    file_path=event_data.get('file_path'),
-                    file_name=event_data.get('file_name'),
-                    executing_user=event_data.get('executing_user'),
-                    execution_time=event_data.get('execution_time'),
-                    loggedin_users=event_data.get('loggedin_users'),
-                    current_sessions=event_data.get('current_sessions'),
-                    decision=event_data.get('decision'),
-                    file_bundle_id=event_data.get('file_bundle_id'),
-                    file_bundle_path=event_data.get('file_bundle_path'),
-                    file_bundle_executable_rel_path=event_data.get('file_bundle_executable_rel_path'),
-                    file_bundle_name=event_data.get('file_bundle_name'),
-                    file_bundle_version=event_data.get('file_bundle_version'),
-                    file_bundle_version_string=event_data.get('file_bundle_version_string'),
-                    file_bundle_hash=event_data.get('file_bundle_hash'),
-                    file_bundle_hash_millis=event_data.get('file_bundle_hash_millis'),
-                    file_bundle_binary_count=event_data.get('file_bundle_binary_count'),
-                    pid=event_data.get('pid'),
-                    ppid=event_data.get('ppid'),
-                    parent_name=event_data.get('parent_name'),
-                    quarantine_data_url=event_data.get('quarantine_data_url'),
-                    quarantine_referer_url=event_data.get('quarantine_referer_url'),
-                    quarantine_timestamp=event_data.get('quarantine_timestamp'),
-                    quarantine_agent_bundle_id=event_data.get('quarantine_agent_bundle_id'),
-                    signing_chain=event_data.get('signing_chain'),
-                    signing_id=event_data.get('signing_id'),
-                    team_id=event_data.get('team_id'),
-                    cdhash=event_data.get('cdhash'),
-                    serial_num=serial,
-                    ignored=ignored
+                # Generate unique id
+                uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_bundle_id')
+
+                event, created = Event.objects.update_or_create(
+                    unique_id=uniqueid,  # Match on the unique_id
+                    defaults={
+                        'file_sha256': event_data.get('file_sha256'),
+                        'file_path': event_data.get('file_path'),
+                        'file_name': event_data.get('file_name'),
+                        'executing_user': event_data.get('executing_user'),
+                        'execution_time': event_data.get('execution_time'),
+                        'loggedin_users': event_data.get('loggedin_users'),
+                        'current_sessions': event_data.get('current_sessions'),
+                        'decision': event_data.get('decision'),
+                        'file_bundle_id': event_data.get('file_bundle_id'),
+                        'file_bundle_path': event_data.get('file_bundle_path'),
+                        'file_bundle_executable_rel_path': event_data.get('file_bundle_executable_rel_path'),
+                        'file_bundle_name': event_data.get('file_bundle_name'),
+                        'file_bundle_version': event_data.get('file_bundle_version'),
+                        'file_bundle_version_string': event_data.get('file_bundle_version_string'),
+                        'file_bundle_hash': event_data.get('file_bundle_hash'),
+                        'file_bundle_hash_millis': event_data.get('file_bundle_hash_millis'),
+                        'file_bundle_binary_count': event_data.get('file_bundle_binary_count'),
+                        'pid': event_data.get('pid'),
+                        'ppid': event_data.get('ppid'),
+                        'parent_name': event_data.get('parent_name'),
+                        'quarantine_data_url': event_data.get('quarantine_data_url'),
+                        'quarantine_referer_url': event_data.get('quarantine_referer_url'),
+                        'quarantine_timestamp': event_data.get('quarantine_timestamp'),
+                        'quarantine_agent_bundle_id': event_data.get('quarantine_agent_bundle_id'),
+                        'signing_chain': event_data.get('signing_chain'),
+                        'signing_id': event_data.get('signing_id'),
+                        'team_id': event_data.get('team_id'),
+                        'cdhash': event_data.get('cdhash'),
+                        'serial_num': serial,
+                        'ignored': ignored
+                    }
                 )
 
             return JsonResponse({'message': 'Events processed successfully'}, status=200)
