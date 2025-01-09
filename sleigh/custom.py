@@ -9,7 +9,7 @@ def addlog(user, text):
     # Creates a changelog entry - addlog(request.user,f"")
     LogEntry.objects.create(
         user=user,
-        text=text
+        action=text
     )
 
 def get_client_preflight(serial):
