@@ -1,0 +1,87 @@
+{% extends "sleigh/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+
+<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <form method="POST" id="IgnoreEventForm" action="{% url 'sleigh:events' %}">
+        {% csrf_token %}
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 text-gray-800">Santa Events</h1>
+            <button type="submit" class="btn btn-sm btn-primary shadow-sm" id="submit-button" disabled>Ignore Selected</button>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                {% if events %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" id="tblevents">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">Datetime</th>
+                                <th scope="col">Decision</th>
+                                <th scope="col">User</th>
+                                <th scope="col">File Path</th>
+                                <th scope="col">File Name</th>
+                                <th scope="col">SigningID</th>
+                                <th scope="col">Serial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for e in form.fields.events.queryset %}
+                        <tr>
+                            <td><input type="checkbox" name="file_bundle_id" class="checkbox-item" value="{{ e.file_bundle_id }}"></td>
+                            <td>{{ e.timestamp|date:"Y/m/d H:i:s" }}</td>
+                            <td>{{ e.decision }}</td>
+                            <td>{{ e.executing_user }}</td>
+                            <td>{{ e.file_bundle_path }}</td>
+                            <td>{{ e.file_bundle_name }}</td>
+                            <td>{{ e.signing_id }}</td>
+                            <td>{{ e.serial_num }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+            No events yet!
+            {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+      $('#tblevents').DataTable({});
+    });
+
+    // JavaScript to enable/disable the submit button based on checkbox state
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.checkbox-item');
+        const submitButton = document.getElementById('submit-button');
+
+        function toggleSubmitButton() {
+            // Check if any checkbox is checked
+            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+            // Enable or disable the submit button
+            submitButton.disabled = !anyChecked;
+        }
+
+        // Attach change event listener to each checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', toggleSubmitButton);
+        });
+    });
+</script>
+
+{% endblock %}

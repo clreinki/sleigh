@@ -108,10 +108,17 @@
                     <span>Device Inventory</span></a>
             </li>
 
+            <!-- Nav Item - Events -->
+            <li class="nav-item {% if 'events' in request.resolver_match.url_name %}active{% endif %}">
+                <a class="nav-link" href="{% url 'sleigh:events' %}">
+                    <i class="fas fa-fw fa-file-lines"></i>
+                    <span>Santa Events</span></a>
+            </li>
+
             <!-- Nav Item - Logs -->
             <li class="nav-item {% if 'changelog' in request.resolver_match.url_name %}active{% endif %}">
                 <a class="nav-link" href="{% url 'sleigh:changelog' %}">
-                    <i class="fas fa-fw fa-file-lines"></i>
+                    <i class="fas fa-fw fa-triangle-exclamation"></i>
                     <span>Sleigh Changelog</span></a>
             </li>
 

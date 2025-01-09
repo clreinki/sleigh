@@ -78,11 +78,12 @@ class Device(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.SET_DEFAULT, default=1)
 
 class Event(models.Model):
+    timestamp = models.DateTimeField(auto_now=True)
     file_sha256 = models.CharField(max_length=64)
     file_path = models.TextField()
     file_name = models.CharField(max_length=255)
     executing_user = models.CharField(max_length=255, blank=True, null=True)
-    execution_time = models.FloatField(blank=True, null=True)
+    execution_time = models.BigIntegerField(blank=True, null=True)
     loggedin_users = models.JSONField(blank=True, null=True)
     current_sessions = models.JSONField(blank=True, null=True)
     decision = models.CharField(max_length=50)
@@ -107,9 +108,16 @@ class Event(models.Model):
     team_id = models.CharField(max_length=255, blank=True, null=True)
     cdhash = models.CharField(max_length=64, blank=True, null=True)
     serial_num = models.CharField(max_length=16)
+    ignored = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Event {self.file_sha256} - {self.decision}"
+        return f"({self.decision}) {self.serial_num} - {self.file_sha256}"
+
+class IgnoredEntry(models.Model):
+    file_bundle_id = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.file_bundle_id
 
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now=True)

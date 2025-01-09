@@ -13,14 +13,15 @@ import zlib
 import logging
 from sentry_sdk import capture_exception, capture_message
 
-from .models import Config, Profile, Rule, Device, LogEntry, Event
-from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm
+from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
+from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
 from .custom import addlog, get_client_preflight, get_client_rules
 
 logger = logging.getLogger('django')
 
 ################### WEB UI VIEWS ###################
 
+###### Dashboard ######
 @login_required
 def index(request):
     """The main app homepage - for creating new request"""
@@ -49,6 +50,7 @@ def config(request, config_id=None):
         if form.is_valid():
             saved_config = form.save()
             cache.delete("cache_allconfigs")
+            addlog(request.user,f"Updated Config #{saved_config.id}")
             return redirect('sleigh:config', config_id=saved_config.id)
         else:
             form_errors = form.errors
@@ -65,6 +67,7 @@ def delete_config_view(request, config_id):
             config = Config.objects.get(id=config_id)
             config.delete()
             cache.delete("cache_allconfigs")
+            addlog(request.user,f"Deleted Config #{config_id}")
             return redirect('sleigh:index')
         except Config.DoesNotExist:
             return HttpResponseServerError("An internal server error occurred.")
@@ -92,6 +95,7 @@ def profile(request, profile_id=None):
         if profile_form.is_valid():
             saved_profile = profile_form.save()
             cache.delete("cache_allprofiles")
+            addlog(request.user,f"Updated Profile #{saved_profile.id}")
             return redirect('sleigh:profile', profile_id=saved_profile.id)
         else:
             form_errors = profile_form.errors
@@ -119,7 +123,8 @@ def addrule(request):
     if request.method == 'POST':
         form = RuleAddForm(data=request.POST)
         if form.is_valid():
-            form.save()
+            saved_form = form.save()
+            addlog(request.user,f"Added Rule #{saved_form.id}: {saved_form.identifier}, {saved_form.description}")
             return redirect('sleigh:profile', profile_id=request.POST['profile'])
         else:
             return HttpResponseServerError("Invalid data submitted")
@@ -132,6 +137,7 @@ def delete_rule_view(request):
         rule_id = request.POST.get('rule_id')
         try:
             rule = Rule.objects.get(id=rule_id)
+            addlog(request.user,f"Deleted rule: {rule.identifier}, {rule.description}")
             rule.delete()
             return JsonResponse({'success': True, 'message': 'Rule deleted successfully!'})
         except Rule.DoesNotExist:
@@ -152,13 +158,36 @@ def device_inventory(request):
             if action == 'update_config':
                 config_id = request.POST.get('config_id')
                 Device.objects.filter(serial_num__in=devices).update(config_id=config_id)
+                addlog(request.user,f"Updated assigned config to {config_id} for: {devices}")
 
             elif action == 'update_profile':
                 profile_id = request.POST.get('profile_id')
                 Device.objects.filter(serial_num__in=devices).update(profile_id=profile_id)
+                addlog(request.user,f"Updated assigned profile to {profile_id} for: {devices}")
     
     form = DeviceObjectForm()
     return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
+
+###### Santa Events ######
+@login_required
+def events(request):
+    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
+    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
+    if request.method == 'POST':
+        # Handling form submission
+        form = IgnoreEventForm(request.POST)
+        if form.is_valid():
+            events = form.cleaned_data['events']
+            Event.objects.filter(file_bundle_id__in=events).update(ignored=True)
+            ignored_entry, created = IgnoredEntry.objects.get_or_create(
+                file_bundle_id=file_bundle_id
+            )
+
+            if created:
+                addlog(request.user, f"New ignored entry created with file_bundle_id: {file_bundle_id}")
+    
+    form = IgnoreEventForm()
+    return render(request, 'sleigh/events.html', {'configs': configs, 'profiles': profiles, 'form': form})
 
 ###### Sleigh Changelog ######
 @login_required
@@ -188,7 +217,8 @@ class CustomLoginView(LoginView):
 def create_user_processing(request):
     form = CustomUserCreationForm(request.POST)
     if form.is_valid():
-        form.save()
+        saved_form = form.save()
+        addlog(request.user,f"Created new user {saved_form.username}")
         return redirect('sleigh:usermgmt')
     return render(request, 'sleigh/error.html')
 
@@ -198,6 +228,7 @@ def delete_user_view(request):
         user_id = request.POST.get('user_id')
         try:
             user = User.objects.get(id=user_id)
+            addlog(request.user,f"Deleted user {user.username}")
             user.delete()
             return JsonResponse({'success': True, 'message': 'User deleted successfully!'})
         except User.DoesNotExist:
@@ -271,6 +302,13 @@ def eventupload(request, serial):
             events = data.get('events', [])
             
             for event_data in events:
+                # Check if already ignored
+                file_bundle_id=event_data.get('file_bundle_id')
+                if IgnoredEntry.objects.filter(file_bundle_id=file_bundle_id).exists():
+                    ignored = True
+                else:
+                    ignored = False
+
                 Event.objects.create(
                     file_sha256=event_data.get('file_sha256'),
                     file_path=event_data.get('file_path'),
@@ -300,7 +338,8 @@ def eventupload(request, serial):
                     signing_id=event_data.get('signing_id'),
                     team_id=event_data.get('team_id'),
                     cdhash=event_data.get('cdhash'),
-                    serial_num=serial
+                    serial_num=serial,
+                    ignored=ignored
                 )
 
             return JsonResponse({'message': 'Events processed successfully'}, status=200)

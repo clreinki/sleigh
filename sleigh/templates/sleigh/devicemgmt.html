@@ -55,7 +55,7 @@
                         <tbody>
                         {% for dev in form.fields.devices.queryset %}
                         <tr>
-                            <td><input type="checkbox" name="devices" value="{{ dev.serial_num }}"></td>
+                            <td><input type="checkbox" name="devices" class="checkbox-item" value="{{ dev.serial_num }}"></td>
                             <td>{{ dev.serial_num }}</td>
                             <td>{{ dev.primary_user }}</td>
                             <td>{{ dev.os_version }}</td>
@@ -64,7 +64,7 @@
                             <td>{{ dev.rules_synced }}</td>
                             <td>{{ dev.config }}</td>
                             <td>{{ dev.profile }}</td>
-                            <td>{{ dev.last_updated }}</td>
+                            <td>{{ dev.last_updated|date:"Y/m/d H:i:s" }}</td>
                         </tr>
                         {% endfor %}
                         </tbody>
