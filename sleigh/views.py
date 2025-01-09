@@ -324,7 +324,7 @@ def eventupload(request, serial):
                 uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_bundle_id')
 
                 event, created = Event.objects.update_or_create(
-                    unique_id=uniqueid,  # Match on the unique_id
+                    uniqueid=uniqueid,  # Match on the unique_id
                     defaults={
                         'file_sha256': event_data.get('file_sha256'),
                         'file_path': event_data.get('file_path'),
