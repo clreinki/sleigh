@@ -84,6 +84,27 @@
     $(document).ready(function() {
       $('#tbldevices').DataTable({});
     });
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.checkbox-item');
+        const submitButtons = document.querySelectorAll('button[type="submit"]');
+
+        function toggleSubmitButtons() {
+            // Check if any checkbox is checked
+            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+            // Enable or disable all submit buttons
+            submitButtons.forEach(button => {
+                button.disabled = !anyChecked;
+            });
+        }
+
+        // Attach change event listener to each checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', toggleSubmitButtons);
+        });
+
+        // Initial check on page load
+        toggleSubmitButtons();
+    });
 </script>
 
 {% endblock %}

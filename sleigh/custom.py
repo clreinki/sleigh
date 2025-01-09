@@ -1,4 +1,6 @@
 from django.core.cache import cache
+from django.utils import timezone
+from datetime import timedelta
 import json
 import zlib
 
@@ -11,6 +13,22 @@ def addlog(user, text):
         user=user,
         action=text
     )
+
+def get_dashboard_stats():
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    past_day = timezone.now() - timedelta(days=1)
+
+    stat1 = Device.objects.filter(last_updated__gte=seven_days_ago).count()
+
+    main_profile = Profile.objects.get(id=1)
+    stat2 = Rule.objects.filter(profile=main_profile).count()
+
+    stat3 = IgnoredEntry.objects.all().count()
+
+    stat4 = Event.objects.filter(timestamp__gte=seven_days_ago).count()
+
+    stats = {'stat1': stat1, 'stat2': stat2, 'stat3': stat3, 'stat4': stat4}
+    return stats
 
 def get_client_preflight(serial):
     device = Device.objects.select_related('config').get(serial_num=serial)

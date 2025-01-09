@@ -15,7 +15,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
-from .custom import addlog, get_client_preflight, get_client_rules
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats
 
 logger = logging.getLogger('django')
 
@@ -27,7 +27,8 @@ def index(request):
     """The main app homepage - for creating new request"""
     configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
     profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
-    context = {'configs': configs, 'profiles': profiles}
+    stats = cache.get_or_set("dashboard_stats", get_dashboard_stats(), 600)
+    context = {'configs': configs, 'profiles': profiles, 'stats': stats}
     return render(request, 'sleigh/dashboard.html', context)
 
 ###### Config Management ######
@@ -246,6 +247,20 @@ def delete_user_view(request):
             return JsonResponse({'success': False, 'message': 'User not found.'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
 
+@csrf_exempt
+def set_toggle_state(request):
+    # Maintains sidebar toggle state
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            toggle_state = data.get('toggle_state', False)
+            request.session['toggle_state'] = toggle_state
+            print(f"Toggle state is {toggle_state}")
+            return JsonResponse({'message': 'Toggle state updated successfully.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'message': 'Invalid request method'}, status=405)
+
 ################### SANTA VIEWS ###################
 
 @csrf_exempt
@@ -277,12 +292,6 @@ def preflight(request, serial):
                     'request_clean_sync': data.get('request_clean_sync', True),
                 },
             )
-
-            # Log whether the device was created or updated
-            if created:
-                print(f"Device {serial} created.")
-            else:
-                print(f"Device {serial} updated.")
 
             # Determine response based on serial
             response = cache.get_or_set(serial + "-config", get_client_preflight(serial), None)

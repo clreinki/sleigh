@@ -22,7 +22,7 @@ class Command(BaseCommand):
             profile = Profile.objects.get(id=1)
             for rule_data in toml_data['rules']:
                 Rule.objects.create(
-                    description=rule_data.get('custom_msg', ''),
+                    description=rule_data.get('description', ''),
                     identifier=rule_data['identifier'],
                     policy=rule_data['policy'],
                     rule_type=rule_data['rule_type'],

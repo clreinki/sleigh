@@ -111,14 +111,14 @@
             <!-- Nav Item - Events -->
             <li class="nav-item {% if 'events' in request.resolver_match.url_name %}active{% endif %}">
                 <a class="nav-link" href="{% url 'sleigh:events' %}">
-                    <i class="fas fa-fw fa-file-lines"></i>
+                    <i class="fas fa-fw fa-triangle-exclamation"></i>
                     <span>Santa Events</span></a>
             </li>
 
             <!-- Nav Item - Logs -->
             <li class="nav-item {% if 'changelog' in request.resolver_match.url_name %}active{% endif %}">
                 <a class="nav-link" href="{% url 'sleigh:changelog' %}">
-                    <i class="fas fa-fw fa-triangle-exclamation"></i>
+                    <i class="fas fa-fw fa-file-lines"></i>
                     <span>Sleigh Changelog</span></a>
             </li>
 
@@ -137,13 +137,15 @@
                     <span>User Management</span></a>
             </li>
 
-            <!-- Divider -->
+            <!-- Divider 
             <hr class="sidebar-divider d-none d-md-block">
+            -->
 
-            <!-- Sidebar Toggler (Sidebar) -->
+            <!-- Sidebar Toggler (Sidebar)
             <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+                <button class="rounded-circle border-0" id="sidebarToggle""></button>
             </div>
+            -->
 
         </ul>
         <!-- End of Sidebar -->
@@ -249,6 +251,7 @@
     <script src="{% static 'sleigh/js/sb-admin-2.min.js' %}"></script>
 
     {%block extra_js %}
+
     {% endblock %}
 </body>
 
