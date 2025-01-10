@@ -15,7 +15,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
-from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info
 
 logger = logging.getLogger('django')
 
@@ -293,8 +293,11 @@ def preflight(request, serial):
                 },
             )
 
+            # Get client info from cache if possible
+            client_info = cache.get_or_set(serial, get_client_info(serial), None)
+
             # Determine response based on serial
-            response = cache.get_or_set(serial + "-config", get_client_preflight(serial), None)
+            response = cache.get_or_set("config" + client_info['config'], get_client_preflight(client_info['config']), None)
 
             # Return a success response
             return JsonResponse(response, status=200)
@@ -384,8 +387,11 @@ def eventupload(request, serial):
 @csrf_exempt
 def ruledownload(request, serial):
     try:
+        # Get client info from cache
+        client_info = cache.get_or_set(serial, get_client_info(serial), None)
+
         # Determine response based on serial
-        response = cache.get_or_set(serial + "-rules", get_client_rules(serial), None)
+        response = cache.get_or_set("profile" + client_info['profile'], get_client_rules(client_info['profile']), None)
 
         # Return a success response
         return JsonResponse(response, status=200)

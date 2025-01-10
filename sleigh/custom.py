@@ -30,30 +30,35 @@ def get_dashboard_stats():
     stats = {'stat1': stat1, 'stat2': stat2, 'stat3': stat3, 'stat4': stat4}
     return stats
 
-def get_client_preflight(serial):
-    device = Device.objects.select_related('config').get(serial_num=serial)
-    full_sync_interval = round(device.config.full_sync_interval * 0.6667)  # Fix weird bug in Santa client
+def get_client_info(serial):
+    device = Device.objects.get(serial_num=serial)
+    client_info = {'config': device.config.id, 'profile': device.profile.id}
+    return client_info
+
+def get_client_preflight(config_id):
+    config = Config.objects.get(id=config_id)
+    full_sync_interval = round(config.full_sync_interval * 0.6667)  # Fix weird bug in Santa client
     response_data = {
-        "batch_size": device.config.batch_size,
-        "client_mode": device.config.client_mode,
-        "allowed_path_regex": device.config.allowed_path_regex,
-        "blocked_path_regex": device.config.blocked_path_regex,
+        "batch_size": config.batch_size,
+        "client_mode": config.client_mode,
+        "allowed_path_regex": config.allowed_path_regex,
+        "blocked_path_regex": config.blocked_path_regex,
         "full_sync_interval": full_sync_interval,
         "sync_type": "clean",
-        "bundles_enabled": device.config.enable_bundles,
-        "enable_transitive_rules": device.config.enable_transitive_rules,
-        "block_usb_mount": device.config.block_usb_mount
+        "bundles_enabled": config.enable_bundles,
+        "enable_transitive_rules": config.enable_transitive_rules,
+        "block_usb_mount": config.block_usb_mount
     }
     return response_data
 
-def get_client_rules(serial):
-    device = Device.objects.get(serial_num=serial)
+def get_client_rules(profile_id):
+    profile = Profile.objects.get(id=profile_id)
     # If assigned the default profile or a standalone profile
-    if device.profile.id == 1 or device.profile.standalone:
-        rules = device.profile.rules.all()
+    if profile.id == 1 or profile.standalone:
+        rules = profile.rules.all()
     # If including a partial profile, combine rulesets
     else:
-        partial_rules = device.profile.rules.all()
+        partial_rules = profile.rules.all()
         base_rules = Rule.objects.filter(profile__id=1)
         rules = partial_rules | base_rules
     
