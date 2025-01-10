@@ -297,7 +297,7 @@ def preflight(request, serial):
             client_info = cache.get_or_set(serial, get_client_info(serial), None)
 
             # Determine response based on serial
-            response = cache.get_or_set("config" + client_info['config'], get_client_preflight(client_info['config']), None)
+            response = cache.get_or_set("config" + str(client_info['config']), get_client_preflight(client_info['config']), None)
 
             # Return a success response
             return JsonResponse(response, status=200)
@@ -391,7 +391,7 @@ def ruledownload(request, serial):
         client_info = cache.get_or_set(serial, get_client_info(serial), None)
 
         # Determine response based on serial
-        response = cache.get_or_set("profile" + client_info['profile'], get_client_rules(client_info['profile']), None)
+        response = cache.get_or_set("profile" + str(client_info['profile']), get_client_rules(client_info['profile']), None)
 
         # Return a success response
         return JsonResponse(response, status=200)
