@@ -26,9 +26,13 @@ urlpatterns = [
     path('usermgmt/', views.usermgmt, name='usermgmt'),
     path('createuser/', views.create_user_processing, name='create_user_processing'),
     path('delete-user/', views.delete_user_view, name='delete_user'),
-    path('set-toggle-state/', views.set_toggle_state, name='set_toggle_state'),
     path('santa/preflight/<str:serial>', views.preflight, name='preflight'),
     path('santa/ruledownload/<str:serial>', views.ruledownload, name='ruledownload'),
     path('santa/eventupload/<str:serial>', views.eventupload, name='eventupload'),
     path('santa/postflight/<str:serial>', views.postflight, name='postflight'),
+    # Duplicate URLs that conform to existing Moroz deployments
+    path('v1/preflight/<str:serial>', views.preflight, name='preflight'),
+    path('v1/ruledownload/<str:serial>', views.ruledownload, name='ruledownload'),
+    path('v1/eventupload/<str:serial>', views.eventupload, name='eventupload'),
+    path('v1/postflight/<str:serial>', views.postflight, name='postflight'),
 ]

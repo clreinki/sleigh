@@ -15,7 +15,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
-from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys
 
 logger = logging.getLogger('django')
 
@@ -51,6 +51,7 @@ def config(request, config_id=None):
         if form.is_valid():
             saved_config = form.save()
             cache.delete("cache_allconfigs")
+            cache.delete("config" + str(saved_config.id))
             config = Config.objects.get(id=saved_config.id)
             addlog(request.user,f"Updated Config {config.name}")
             return redirect('sleigh:config', config_id=saved_config.id)
@@ -97,6 +98,7 @@ def profile(request, profile_id=None):
         if profile_form.is_valid():
             saved_profile = profile_form.save()
             cache.delete("cache_allprofiles")
+            cache.delete("profile" + str(saved_profile.id))
             profile = Profile.objects.get(id=saved_profile.id)
             addlog(request.user,f"Updated Profile {profile.name}")
             return redirect('sleigh:profile', profile_id=saved_profile.id)
@@ -128,6 +130,7 @@ def addrule(request):
         if form.is_valid():
             saved_form = form.save()
             addlog(request.user,f"Added Rule #{saved_form.id}: {saved_form.identifier}, {saved_form.description}")
+            delete_cache_keys("profile")
             return redirect('sleigh:profile', profile_id=request.POST['profile'])
         else:
             return HttpResponseServerError("Invalid data submitted")
@@ -142,6 +145,7 @@ def delete_rule_view(request):
             rule = Rule.objects.get(id=rule_id)
             addlog(request.user,f"Deleted rule: {rule.identifier}, {rule.description}")
             rule.delete()
+            delete_cache_keys("profile")
             return JsonResponse({'success': True, 'message': 'Rule deleted successfully!'})
         except Rule.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Rule not found.'}, status=404)
@@ -164,6 +168,7 @@ def device_inventory(request):
                 config = Config.objects.get(id=config_id)
                 for device in devices:
                     addlog(request.user,f"Updated assigned config to {config.name} for {device.serial_num}")
+                    cache.delete(device.serial_num)
 
             elif action == 'update_profile':
                 profile_id = request.POST.get('profile_id')
@@ -171,6 +176,7 @@ def device_inventory(request):
                 profile = Profile.objects.get(id=profile_id)
                 for device in devices:
                     addlog(request.user,f"Updated assigned profile to {profile.name} for {device.serial_num}")
+                    cache.delete(device.serial_num)
     
     form = DeviceObjectForm()
     return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
@@ -246,20 +252,6 @@ def delete_user_view(request):
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'User not found.'}, status=404)
     return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
-
-@csrf_exempt
-def set_toggle_state(request):
-    # Maintains sidebar toggle state
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            toggle_state = data.get('toggle_state', False)
-            request.session['toggle_state'] = toggle_state
-            print(f"Toggle state is {toggle_state}")
-            return JsonResponse({'message': 'Toggle state updated successfully.'})
-        except json.JSONDecodeError:
-            return JsonResponse({'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'message': 'Invalid request method'}, status=405)
 
 ################### SANTA VIEWS ###################
 

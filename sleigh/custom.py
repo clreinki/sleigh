@@ -79,3 +79,8 @@ def get_client_rules(profile_id):
         "rules": rule_list,
     }
     return response_data
+
+def delete_cache_keys(prefix):
+    keys = cache.keys(f'{prefix}*')  # Fetch all keys starting with 'prefix'
+    if keys:
+        cache.delete_many(keys)  # Delete all matching keys
