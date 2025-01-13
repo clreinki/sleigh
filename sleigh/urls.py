@@ -32,8 +32,8 @@ urlpatterns = [
     path('santa/eventupload/<str:serial>', views.eventupload, name='eventupload'),
     path('santa/postflight/<str:serial>', views.postflight, name='postflight'),
     # Duplicate URLs that conform to existing Moroz deployments
-    path('v1/preflight/<str:serial>', views.preflight, name='preflight'),
-    path('v1/ruledownload/<str:serial>', views.ruledownload, name='ruledownload'),
-    path('v1/eventupload/<str:serial>', views.eventupload, name='eventupload'),
-    path('v1/postflight/<str:serial>', views.postflight, name='postflight'),
+    path('v1/santa/preflight/<str:serial>', views.preflight, name='preflight'),
+    path('v1/santa/ruledownload/<str:serial>', views.ruledownload, name='ruledownload'),
+    path('v1/santa/eventupload/<str:serial>', views.eventupload, name='eventupload'),
+    path('v1/santa/postflight/<str:serial>', views.postflight, name='postflight'),
 ]
