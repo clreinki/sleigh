@@ -331,7 +331,7 @@ def eventupload(request, serial):
                     ignored = False
 
                 # Generate unique id
-                uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_bundle_id')
+                uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_bundle_id', 'unknown')
 
                 event, created = Event.objects.update_or_create(
                     uniqueid=uniqueid,  # Match on the unique_id

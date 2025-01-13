@@ -32,8 +32,11 @@ def get_dashboard_stats():
     return stats
 
 def get_client_info(serial):
-    device = Device.objects.get(serial_num=serial)
-    client_info = {'config': device.config.id, 'profile': device.profile.id}
+    try:
+        device = Device.objects.get(serial_num=serial)
+        client_info = {'config': device.config.id, 'profile': device.profile.id}
+    except:
+        client_info = {'config': 1, 'profile': 1}
     return client_info
 
 def get_client_preflight(config_id):
