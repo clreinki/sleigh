@@ -3,7 +3,26 @@
 
 {% block extra_css %}
 
-<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+<link href="{% static 'sleigh/vendor/datatables/datatables.min.css' %}" rel="stylesheet">
+<style>
+    div.dt-container>div.row {
+        margin-bottom: .5rem !important;
+    }
+    .modal-body .table-responsive {
+        max-width: 100%;
+        overflow-x: hidden; /* Disable horizontal scrolling */
+    }
+
+    .modal-body table {
+        width: 100%;
+        table-layout: fixed; /* Ensures cells take equal space */
+    }
+
+    .modal-body th, .modal-body td {
+        white-space: normal; /* Allow word wrapping */
+        word-wrap: break-word; /* Break long words */
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -21,6 +40,7 @@
                         <thead>
                             <tr>
                                 <th scope="col"></th>
+                                <th scope="col">EventID</th>
                                 <th scope="col">Datetime</th>
                                 <th scope="col">Decision</th>
                                 <th scope="col">User</th>
@@ -34,6 +54,7 @@
                         {% for e in form.fields.events.queryset %}
                         <tr>
                             <td><input type="checkbox" name="events" class="checkbox-item" value="{{ e.id }}"></td>
+                            <td>{{ e.id }}</td>
                             <td>{{ e.timestamp|date:"Y/m/d H:i:s" }}</td>
                             <td>{{ e.decision }}</td>
                             <td>{{ e.executing_user }}</td>
@@ -50,32 +71,96 @@
         </div>
     </form>
 </div>
+<!-- Log Entry Modal-->
+<div class="modal fade" id="logentryModal" tabindex="-1" role="dialog" aria-labelledby="logentryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logentryModalLabel">Event Details</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                    
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/datatables.min.js' %}"></script>
 
 <script>
     $(document).ready(function() {
-      $('#tblevents').DataTable({});
-    });
+        const table = $('#tblevents').DataTable({
+            columnDefs: [
+                {
+                    target: 1,
+                    visible: false,
+                    searchable: false
+                }
+            ],
+            layout: {
+                bottomEnd: {
+                    paging: {
+                        firstLast: false
+                    }
+                }
+            },
+            language: {
+                'paginate': {
+                  'previous': '<span class="prev-icon">Previous</span>',
+                  'next': '<span class="next-icon">Next</span>'
+                }
+            }
+        });
 
-    // JavaScript to enable/disable the submit button based on checkbox state
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkboxes = document.querySelectorAll('.checkbox-item');
-        const submitButton = document.getElementById('submit-button');
+        // Attach the click event listener
+        $('#tblevents tbody').on('click', 'tr', function() {
+            const dataId = table.row(this).data()[1]; // Get data from the second column
+            const url = `/event_details/${dataId}/`; // Construct the URL with the event ID
 
-        function toggleSubmitButton() {
-            // Check if any checkbox is checked
-            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-            // Enable or disable the submit button
-            submitButton.disabled = !anyChecked;
+            loaddata(dataId); // Call the function to load data
+        });
+
+        function loaddata(dataId) {
+            $.ajax({
+                url: `/event_details/${dataId}/`, // URL with the correct ID
+                method: 'GET',
+                success: function(response) {
+                    // Insert the returned HTML into the modal
+                    $('#logentryModal .modal-body').html(response);
+                    // Show the modal
+                    $('#logentryModal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error: ' + status + ': ' + error);
+                    alert('Failed to load data. Please try again.');
+                }
+            });
         }
 
-        // Attach change event listener to each checkbox
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', toggleSubmitButton);
+        // JavaScript to enable/disable the submit button based on checkbox state
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.checkbox-item');
+            const submitButton = document.getElementById('submit-button');
+
+            function toggleSubmitButton() {
+                // Check if any checkbox is checked
+                const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+                // Enable or disable the submit button
+                submitButton.disabled = !anyChecked;
+            }
+
+            // Attach change event listener to each checkbox
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', toggleSubmitButton);
+            });
         });
     });
 </script>

@@ -3,7 +3,12 @@
 
 {% block extra_css %}
 
-<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+<link href="{% static 'sleigh/vendor/datatables/datatables.min.css' %}" rel="stylesheet">
+<style>
+    div.dt-container>div.row {
+        margin-bottom: .5rem !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -26,7 +31,7 @@
                     <tbody>
                     {% for entry in entries %}
                     <tr>
-                        <td>{{ entry.timestamp }}</td>
+                        <td>{{ entry.timestamp|date:"Y/m/d H:i:s" }}</td>
                         <td>{{ entry.user }}</td>
                         <td>{{ entry.action }}</td>
                     </tr>
@@ -43,12 +48,26 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/datatables.min.js' %}"></script>
 
 <script>
     $(document).ready(function() {
-      $('#tblchangelog').DataTable({});
+      $('#tblchangelog').DataTable({
+        layout: {
+            bottomEnd: {
+                paging: {
+                    firstLast: false
+                }
+            }
+        },
+        language: {
+            'paginate': {
+              'previous': '<span class="prev-icon">Previous</span>',
+              'next': '<span class="next-icon">Next</span>'
+            }
+        },
+        order: [[0, 'desc']]
+      });
     });
 </script>
 

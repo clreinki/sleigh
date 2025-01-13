@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Count, F
 import json
 import zlib
 
@@ -84,3 +85,46 @@ def delete_cache_keys(prefix):
     keys = cache.keys(f'{prefix}*')  # Fetch all keys starting with 'prefix'
     if keys:
         cache.delete_many(keys)  # Delete all matching keys
+
+def events_chart():
+    # Get the current date and time
+    today = timezone.now().date()
+    # Calculate the date 30 days ago
+    start_date = today - timedelta(days=30)
+
+    # Query the database for event counts grouped by date
+    events_by_day = (
+        Event.objects.filter(timestamp__date__gte=start_date)
+        .annotate(day=F('timestamp__date'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+
+    # Prepare data for the chart
+    dates = [start_date + timedelta(days=i) for i in range(31)]
+    event_counts = {event['day']: event['count'] for event in events_by_day}
+    data = [event_counts.get(day, 0) for day in dates]
+
+    context = {
+        'dates': [date.strftime("%Y-%m-%d") for date in dates],
+        'data': data,
+    }
+    return context
+
+def macos_version_pie_chart():
+    # Query the database for macOS versions and their counts
+    macos_versions = (
+        Device.objects.values('os_version')
+        .annotate(count=Count('serial_num'))
+    )
+
+    # Prepare data for the chart
+    labels = [entry['os_version'] for entry in macos_versions]
+    data = [entry['count'] for entry in macos_versions]
+    
+    context = {
+        'labels': labels,
+        'data': data,
+    }
+    return context

@@ -15,7 +15,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
-from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart
 
 logger = logging.getLogger('django')
 
@@ -28,7 +28,9 @@ def index(request):
     configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
     profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     stats = cache.get_or_set("dashboard_stats", get_dashboard_stats(), 600)
-    context = {'configs': configs, 'profiles': profiles, 'stats': stats}
+    area_chart = cache.get_or_set("area_chart", events_chart(), 600)
+    pie_chart = cache.get_or_set("pie_chart", macos_version_pie_chart(), 600)
+    context = {'configs': configs, 'profiles': profiles, 'stats': stats, 'area_chart': area_chart, 'pie_chart': pie_chart}
     return render(request, 'sleigh/dashboard.html', context)
 
 ###### Config Management ######
@@ -206,6 +208,10 @@ def events(request):
     
     form = IgnoreEventForm()
     return render(request, 'sleigh/events.html', {'configs': configs, 'profiles': profiles, 'form': form})
+
+def load_log_entry(request, event_id):
+    log_entry = get_object_or_404(Event, id=event_id)
+    return render(request, 'sleigh/event_details.html', {'log_entry': log_entry})
 
 ###### Sleigh Changelog ######
 @login_required

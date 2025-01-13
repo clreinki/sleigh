@@ -1,0 +1,78 @@
+<table class="table table-sm table-bordered">
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Timestamp</td>
+            <td>{{ log_entry.timestamp|date:"Y/m/d H:i:s" }}</td>
+        </tr>
+        <tr>
+            <td>Decision</td>
+            <td>{{ log_entry.decision }}</td>
+        </tr>
+        <tr class="table-warning">
+            <td><strong>File SHA256</strong></td>
+            <td><strong>{{ log_entry.file_sha256 }}</strong></td>
+        </tr>
+        <tr class="table-warning">
+            <td><strong>Signing ID</strong></td>
+            <td><strong>{{ log_entry.signing_id }}</strong></td>
+        </tr>
+        <tr class="table-warning">
+            <td><strong>Team ID</strong></td>
+            <td><strong>{{ log_entry.team_id }}</strong></td>
+        </tr>
+        <tr>
+            <td>CD Hash</td>
+            <td>{{ log_entry.cdhash }}</td>
+        </tr>
+        <tr>
+            <td>File Path</td>
+            <td>{{ log_entry.file_path }}</td>
+        </tr>
+        <tr>
+            <td>File Name</td>
+            <td>{{ log_entry.file_name }}</td>
+        </tr>
+        <tr>
+            <td>Executing User</td>
+            <td>{{ log_entry.executing_user }}</td>
+        </tr>
+        <tr>
+            <td>Serial Number</td>
+            <td>{{ log_entry.serial_num }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle ID</td>
+            <td>{{ log_entry.file_bundle_id }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle Path</td>
+            <td>{{ log_entry.file_bundle_path }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle Name</td>
+            <td>{{ log_entry.file_bundle_name }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle Version</td>
+            <td>{{ log_entry.file_bundle_version }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle Version String</td>
+            <td>{{ log_entry.file_bundle_version_string }}</td>
+        </tr>
+        <tr>
+            <td>File Bundle Hash</td>
+            <td>{{ log_entry.file_bundle_hash }}</td>
+        </tr>
+        <tr>
+            <td>Parent Name</td>
+            <td>{{ log_entry.parent_name }}</td>
+        </tr>
+    </tbody>
+</table>

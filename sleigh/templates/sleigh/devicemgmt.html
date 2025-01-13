@@ -3,7 +3,12 @@
 
 {% block extra_css %}
 
-<link href="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
+<link href="{% static 'sleigh/vendor/datatables/datatables.min.css' %}" rel="stylesheet">
+<style>
+    div.dt-container>div.row {
+        margin-bottom: .5rem !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -77,12 +82,26 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'sleigh/vendor/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'sleigh/vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/datatables/datatables.min.js' %}"></script>
 
 <script>
     $(document).ready(function() {
-      $('#tbldevices').DataTable({});
+      $('#tbldevices').DataTable({
+        layout: {
+            bottomEnd: {
+                paging: {
+                    firstLast: false
+                }
+            }
+        },
+        language: {
+            'paginate': {
+              'previous': '<span class="prev-icon">Previous</span>',
+              'next': '<span class="next-icon">Next</span>'
+            }
+        },
+        order: [[9, 'desc']]
+      });
     });
     document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('.checkbox-item');
