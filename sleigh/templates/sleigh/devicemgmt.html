@@ -88,7 +88,18 @@
                 { data: 'profile' },
                 { data: 'last_updated' }
             ],
-            order: [[9, 'desc']]
+            order: [[9, 'desc']],
+            layout: {
+                bottomEnd: {
+                    paging: {
+                        firstLast: false
+                    }
+                }
+            },
+            language: {
+                'paginate': {
+                  'previous': '<span class="prev-icon">Previous</span>',
+                  'next': '<span class="next-icon">Next</span>'
         });
 
         document.addEventListener('DOMContentLoaded', function() {
