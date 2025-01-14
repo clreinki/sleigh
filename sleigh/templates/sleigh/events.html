@@ -97,8 +97,9 @@
 
 <script>
     $(document).ready(function() {
-        const table = $('#tblevents').DataTable({
-            columnDefs: [
+        const table = $('#tblevents').DataTable({  
+        stateSave: true,
+        columnDefs: [
                 {
                     target: 1,
                     visible: false,
@@ -122,10 +123,12 @@
 
         // Attach the click event listener
         $('#tblevents tbody').on('click', 'tr', function() {
-            const dataId = table.row(this).data()[1]; // Get data from the second column
-            const url = `/event_details/${dataId}/`; // Construct the URL with the event ID
+            if (!$(event.target).closest('.checkbox-item').length) {
+                const dataId = table.row(this).data()[1]; // Get data from the second column
+                const url = `/event_details/${dataId}/`; // Construct the URL with the event ID
 
-            loaddata(dataId); // Call the function to load data
+                loaddata(dataId); // Call the function to load data
+            }
         });
 
         function loaddata(dataId) {
@@ -144,23 +147,22 @@
                 }
             });
         }
+    });
+    // JavaScript to enable/disable the submit button based on checkbox state
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.checkbox-item');
+        const submitButton = document.getElementById('submit-button');
 
-        // JavaScript to enable/disable the submit button based on checkbox state
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkboxes = document.querySelectorAll('.checkbox-item');
-            const submitButton = document.getElementById('submit-button');
+        function toggleSubmitButton() {
+            // Check if any checkbox is checked
+            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+            // Enable or disable the submit button
+            submitButton.disabled = !anyChecked;
+        }
 
-            function toggleSubmitButton() {
-                // Check if any checkbox is checked
-                const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-                // Enable or disable the submit button
-                submitButton.disabled = !anyChecked;
-            }
-
-            // Attach change event listener to each checkbox
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', toggleSubmitButton);
-            });
+        // Attach change event listener to each checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', toggleSubmitButton);
         });
     });
 </script>

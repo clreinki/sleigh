@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
+from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse, HttpResponse, HttpResponseServerError
 from django.core.cache import cache
 from django.conf import settings
@@ -183,6 +184,45 @@ def device_inventory(request):
     form = DeviceObjectForm()
     return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
 
+@login_required
+def device_data(request):
+    draw = request.GET.get('draw')
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 10))
+    search_value = request.GET.get('search[value]', '')
+
+    queryset = Device.objects.all()
+    if search_value:
+        queryset = queryset.filter(serial_num__icontains=search_value)  # Adjust field for search
+
+    paginator = Paginator(queryset, length)
+    page_number = (start // length) + 1
+    page = paginator.get_page(page_number)
+
+    data = [
+        {
+            'checkbox': f'<input type="checkbox" class="checkbox-item" name="devices" value="{device.serial_num}">',
+            'serial_num': device.serial_num,
+            'primary_user': device.primary_user,
+            'os_version': device.os_version,
+            'model_identifier': device.model_identifier,
+            'santa_version': device.santa_version,
+            'rules_synced': device.rules_synced,
+            'config': device.config.name,
+            'profile': device.profile.name,
+            'last_updated': device.last_updated.strftime('%Y/%m/%d %H:%M:%S')  # Adjust date format
+        }
+        for device in page
+    ]
+
+    response = {
+        'draw': draw,
+        'recordsTotal': paginator.count,
+        'recordsFiltered': paginator.count,
+        'data': data
+    }
+    return JsonResponse(response)
+
 ###### Santa Events ######
 @login_required
 def events(request):
@@ -192,7 +232,6 @@ def events(request):
         # Handling form submission
         form = IgnoreEventForm(request.POST)
         if form.is_valid():
-            print("Form valid")
             events = form.cleaned_data['events']
             for event in events:
                 Event.objects.filter(file_bundle_id=event.file_bundle_id).update(ignored=True)

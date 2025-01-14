@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-
 <link href="{% static 'sleigh/vendor/datatables/datatables.min.css' %}" rel="stylesheet">
 <style>
     div.dt-container>div.row {
@@ -14,7 +13,7 @@
 {% block content %}
 <div class="container-fluid">
     <form method="POST" id="deviceObjectForm" action="{% url 'sleigh:device_inventory' %}">
-    {% csrf_token %}
+        {% csrf_token %}
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 text-gray-800">Device Inventory</h1>
             <div>
@@ -25,7 +24,7 @@
                         <option value="{{ config.id }}">{{ config.name }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_config">Update Config</button><br>
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_config" disabled>Update Config</button><br>
                 </div>
                 <div class="mt-2">
                     <label for="profile-select">Bulk Edit Profile:</label>
@@ -34,8 +33,7 @@
                         <option value="{{ profile.id }}">{{ profile.name }}</option>
                         {% endfor %}
                     </select>
-
-                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_profile">Update Profile</button>
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" name="action" value="update_profile" disabled>Update Profile</button>
                 </div>
             </div>
         </div>
@@ -45,39 +43,24 @@
                     <table class="table table-bordered" width="100%" id="tbldevices">
                         <thead>
                             <tr>
-                                <th scope="col" data-priority="1"></th>
-                                <th scope="col" data-priority="1">Serial</th>
-                                <th scope="col" data-priority="1">Primary User</th>
-                                <th scope="col" data-priority="1">OS</th>
-                                <th scope="col" data-priority="1">Model</th>
-                                <th scope="col" data-priority="1">Santa Ver</th>
-                                <th scope="col" data-priority="1">Synced Rule Count</th>
-                                <th scope="col" data-priority="1">Config</th>
-                                <th scope="col" data-priority="1">Profile</th>
-                                <th scope="col" data-priority="1">Last Connected</th>
+                                <th></th>
+                                <th>Serial</th>
+                                <th>Primary User</th>
+                                <th>OS</th>
+                                <th>Model</th>
+                                <th>Santa Ver</th>
+                                <th>Synced Rule Count</th>
+                                <th>Config</th>
+                                <th>Profile</th>
+                                <th>Last Connected</th>
                             </tr>
                         </thead>
-                        <tbody>
-                        {% for dev in form.fields.devices.queryset %}
-                        <tr>
-                            <td><input type="checkbox" name="devices" class="checkbox-item" value="{{ dev.serial_num }}"></td>
-                            <td>{{ dev.serial_num }}</td>
-                            <td>{{ dev.primary_user }}</td>
-                            <td>{{ dev.os_version }}</td>
-                            <td>{{ dev.model_identifier }}</td>
-                            <td>{{ dev.santa_version }}</td>
-                            <td>{{ dev.rules_synced }}</td>
-                            <td>{{ dev.config }}</td>
-                            <td>{{ dev.profile }}</td>
-                            <td>{{ dev.last_updated|date:"Y/m/d H:i:s" }}</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}
 
@@ -86,44 +69,45 @@
 
 <script>
     $(document).ready(function() {
-      $('#tbldevices').DataTable({
-        layout: {
-            bottomEnd: {
-                paging: {
-                    firstLast: false
-                }
-            }
-        },
-        language: {
-            'paginate': {
-              'previous': '<span class="prev-icon">Previous</span>',
-              'next': '<span class="next-icon">Next</span>'
-            }
-        },
-        order: [[9, 'desc']]
-      });
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkboxes = document.querySelectorAll('.checkbox-item');
-        const submitButtons = document.querySelectorAll('button[type="submit"]');
-
-        function toggleSubmitButtons() {
-            // Check if any checkbox is checked
-            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-            // Enable or disable all submit buttons
-            submitButtons.forEach(button => {
-                button.disabled = !anyChecked;
-            });
-        }
-
-        // Attach change event listener to each checkbox
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', toggleSubmitButtons);
+        $('#tbldevices').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "{% url 'sleigh:device_data' %}",
+                type: 'GET'
+            },
+            columns: [
+                { data: 'checkbox', orderable: false, searchable: false },
+                { data: 'serial_num' },
+                { data: 'primary_user' },
+                { data: 'os_version' },
+                { data: 'model_identifier' },
+                { data: 'santa_version' },
+                { data: 'rules_synced' },
+                { data: 'config' },
+                { data: 'profile' },
+                { data: 'last_updated' }
+            ],
+            order: [[9, 'desc']]
         });
 
-        // Initial check on page load
-        toggleSubmitButtons();
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.checkbox-item');
+            const submitButtons = document.querySelectorAll('button[type="submit"]');
+
+            function toggleSubmitButtons() {
+                const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+                submitButtons.forEach(button => {
+                    button.disabled = !anyChecked;
+                });
+            }
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', toggleSubmitButtons);
+            });
+
+            toggleSubmitButtons();
+        });
     });
 </script>
-
 {% endblock %}

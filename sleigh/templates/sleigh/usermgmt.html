@@ -25,7 +25,8 @@
                 <table class="table table-bordered" width="100%" id="tblusers">
                     <thead>
                         <tr>
-                            <th scope="col" data-priority="1">Name</th>
+                            <th scope="col" data-priority="1">Full Name</th>
+                            <th scope="col" data-priority="1">Username</th>
                             <th scope="col" data-priority="1">Email</th>
                             <th scope="col" data-priority="1">Actions</th>
                         </tr>
@@ -34,6 +35,7 @@
                     {% for u in users %}
                     <tr>
                         <td>{{ u.first_name }} {{ u.last_name }}</td>
+                        <td>{{ u.username }}</td>
                         <td>{{ u.email }}</td>
                         <td style="text-align: center;">
                             <button type="button" data-id="{{ u.id }}" class="btn btn-danger m-1 btn-circle delete-user-btn">
@@ -81,7 +83,8 @@
 <script>
     $(document).ready(function() {
       $('#tblusers').DataTable( {
-        columnDefs: [{ width: 60, targets: 2 }],
+        columnDefs: [{ width: 60, targets: 3 }],
+        stateSave: true,
         layout: {
             bottomEnd: {
                 paging: {

@@ -176,7 +176,8 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 sentry_sdk.init(
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for tracing.
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.1,
+    send_default_pii=True,
     _experiments={
         # Set continuous_profiling_auto_start to True
         # to automatically start the profiler on when
