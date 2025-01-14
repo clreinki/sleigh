@@ -21,7 +21,6 @@ urlpatterns = [
     path('addrule/', views.addrule, name='addrule'),
     path('delete-rule/', views.delete_rule_view, name='delete_rule'),
     path('inventory/', views.device_inventory, name='device_inventory'),
-    path('device_data/', views.device_data, name='device_data'),
     path('events/', views.events, name='events'),
     path('event_details/<int:event_id>/', views.load_log_entry, name='load_log_entry'),
     path('changelog/', views.changelog, name='changelog'),
