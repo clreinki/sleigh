@@ -97,7 +97,7 @@ def events_chart():
 
     # Query the database for event counts grouped by date
     events_by_day = (
-        Event.objects.filter(timestamp__date__gte=start_date)
+        Event.objects.filter(timestamp__date__gte=start_date, ignored=False)
         .annotate(day=F('timestamp__date'))
         .values('day')
         .annotate(count=Count('id'))

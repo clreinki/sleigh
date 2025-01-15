@@ -336,14 +336,14 @@ def eventupload(request, serial):
             
             for event_data in events:
                 # Check if already ignored
-                file_bundle_id=event_data.get('file_bundle_id')
-                if IgnoredEntry.objects.filter(file_bundle_id=file_bundle_id).exists():
+                file_name=event_data.get('file_name')
+                if IgnoredEntry.objects.filter(file_name=file_name).exists():
                     ignored = True
                 else:
                     ignored = False
 
                 # Generate unique id
-                uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_bundle_id', 'unknown')
+                uniqueid = str(event_data.get('execution_time')) + "-" + serial + "-" + event_data.get('file_name', 'unknown')
 
                 event, created = Event.objects.update_or_create(
                     uniqueid=uniqueid,  # Match on the unique_id
