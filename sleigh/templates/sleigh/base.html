@@ -27,6 +27,23 @@
 
 <body id="page-top">
 
+    {% if toast %}
+    <!-- Toast container -->
+    <div class="toast-container">
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="8000" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; width: 300px;">
+            <div class="toast-header bg-primary">
+                <strong class="mr-auto text-white">Notification</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true" class="text-white">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body bg-light">
+                {{ toast }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -34,7 +51,7 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-sleigh"></i>
                 </div>
@@ -247,9 +264,15 @@
 
     <!-- Core plugin JavaScript-->
     <script src="{% static 'sleigh/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
-
-    <!-- Custom scripts for all pages-->
     <script src="{% static 'sleigh/js/sb-admin-2.min.js' %}"></script>
+
+    {% if toast %}
+    <script>
+        $(document).ready(function() {
+            $('.toast').toast('show');
+        });
+    </script>
+    {% endif %}
 
     {%block extra_js %}
 

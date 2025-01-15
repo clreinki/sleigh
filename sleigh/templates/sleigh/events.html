@@ -44,7 +44,6 @@
                                 <th scope="col">Datetime</th>
                                 <th scope="col">Decision</th>
                                 <th scope="col">User</th>
-                                <th scope="col">File Path</th>
                                 <th scope="col">File Name</th>
                                 <th scope="col">SigningID</th>
                                 <th scope="col">Serial</th>
@@ -58,8 +57,7 @@
                             <td>{{ e.timestamp|date:"Y/m/d H:i:s" }}</td>
                             <td>{{ e.decision }}</td>
                             <td>{{ e.executing_user }}</td>
-                            <td>{{ e.file_bundle_path }}</td>
-                            <td>{{ e.file_bundle_name }}</td>
+                            <td>{{ e.file_name }}</td>
                             <td>{{ e.signing_id }}</td>
                             <td>{{ e.serial_num }}</td>
                         </tr>

@@ -115,19 +115,37 @@ def events_chart():
     }
     return context
 
-def macos_version_pie_chart():
+def macos_version_pie_chart(limit=5):
     # Query the database for macOS versions and their counts
     macos_versions = (
         Device.objects.values('os_version')
         .annotate(count=Count('serial_num'))
+        .order_by('-count')
     )
 
+    # Convert the QuerySet to a list of dictionaries
+    macos_list = list(macos_versions)
+
+    # Slice the top N versions
+    top_versions = macos_list[:limit]
+
+    # Calculate the "Others" count
+    others_count = sum(entry['count'] for entry in macos_list[limit:])
+    if others_count > 0:
+        top_versions.append({'os_version': 'Others', 'count': others_count})
+
     # Prepare data for the chart
-    labels = [entry['os_version'] for entry in macos_versions]
-    data = [entry['count'] for entry in macos_versions]
+    labels = [entry['os_version'] for entry in top_versions]
+    data = [entry['count'] for entry in top_versions]
     
     context = {
         'labels': labels,
         'data': data,
     }
+    return context
+
+def get_common_context():
+    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
+    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
+    context = {'configs': configs, 'profiles': profiles}
     return context

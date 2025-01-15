@@ -15,7 +15,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
-from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart, get_common_context
 
 logger = logging.getLogger('django')
 
@@ -24,20 +24,18 @@ logger = logging.getLogger('django')
 ###### Dashboard ######
 @login_required
 def index(request):
-    """The main app homepage - for creating new request"""
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
+    """The main app homepage dashboard"""
     stats = cache.get_or_set("dashboard_stats", get_dashboard_stats(), 600)
     area_chart = cache.get_or_set("area_chart", events_chart(), 600)
     pie_chart = cache.get_or_set("pie_chart", macos_version_pie_chart(), 600)
-    context = {'configs': configs, 'profiles': profiles, 'stats': stats, 'area_chart': area_chart, 'pie_chart': pie_chart}
+    context = {'stats': stats, 'area_chart': area_chart, 'pie_chart': pie_chart}
+    context.update(get_common_context())
     return render(request, 'sleigh/dashboard.html', context)
 
 ###### Config Management ######
 @login_required
 def config(request, config_id=None):
     """Modify Config Settings"""
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     form_errors = None  # Initialize error variable
 
     # Check if we're editing an existing Config or creating a new one
@@ -61,8 +59,10 @@ def config(request, config_id=None):
             form_errors = form.errors
     else:
         form = ConfigEditForm(instance=config)
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    context = {'configs': configs, 'profiles': profiles, 'name': name, 'myconfig': config, 'form': form, 'form_errors': form_errors}
+    context = {'name': name, 'myconfig': config, 'form': form, 'form_errors': form_errors}
+    if 'toast' in locals():
+        context['toast'] = toast
+    context.update(get_common_context())
     return render(request, 'sleigh/configs.html', context)
 
 @login_required
@@ -82,7 +82,6 @@ def delete_config_view(request, config_id):
 @login_required
 def profile(request, profile_id=None):
     """Modify Config Settings"""
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
     form_errors = None  # Initialize error variable
 
     # Check if we're editing an existing Config or creating a new one
@@ -109,8 +108,10 @@ def profile(request, profile_id=None):
     else:
         profile_form = ProfileEditForm(instance=profile)
     rule_form = RuleAddForm(profile=profile, user=request.user)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
-    context = {'configs': configs, 'profiles': profiles, 'name': name, 'myprofile': profile, 'profile_form': profile_form, 'rule_form': rule_form, 'form_errors': form_errors, 'rules': rules}
+    context = {'name': name, 'myprofile': profile, 'profile_form': profile_form, 'rule_form': rule_form, 'form_errors': form_errors, 'rules': rules}
+    if 'toast' in locals():
+        context['toast'] = toast
+    context.update(get_common_context())
     return render(request, 'sleigh/profiles.html', context)
 
 @login_required
@@ -156,12 +157,11 @@ def delete_rule_view(request):
 ###### Device Management ######
 @login_required
 def device_inventory(request):
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     if request.method == 'POST':
         # Handling form submission
         form = DeviceObjectForm(request.POST)
         if form.is_valid():
+            serials = []
             devices = form.cleaned_data['devices']
             action = request.POST.get('action')
             if action == 'update_config':
@@ -171,6 +171,8 @@ def device_inventory(request):
                 for device in devices:
                     addlog(request.user,f"Updated assigned config to {config.name} for {device.serial_num}")
                     cache.delete(device.serial_num)
+                    serials.append(device.serial_num)
+                toast = f"Updated assigned profile to {profile.name} for:\n" + ", ".join(serial for serial in serials)
 
             elif action == 'update_profile':
                 profile_id = request.POST.get('profile_id')
@@ -179,9 +181,15 @@ def device_inventory(request):
                 for device in devices:
                     addlog(request.user,f"Updated assigned profile to {profile.name} for {device.serial_num}")
                     cache.delete(device.serial_num)
+                    serials.append(device.serial_num)
+                toast = f"Updated assigned profile to {profile.name} for:\n" + ", ".join(serial for serial in serials)
     
     form = DeviceObjectForm()
-    return render(request, 'sleigh/devicemgmt.html', {'configs': configs, 'profiles': profiles, 'form': form})
+    context = {'form': form}
+    if 'toast' in locals():
+        context['toast'] = toast
+    context.update(get_common_context())
+    return render(request, 'sleigh/devicemgmt.html', context)
 
 ###### Santa Events ######
 @login_required
@@ -192,22 +200,28 @@ def events(request):
         # Handling form submission
         form = IgnoreEventForm(request.POST)
         if form.is_valid():
-            print("Form valid")
+            filenames = []
             events = form.cleaned_data['events']
             for event in events:
-                Event.objects.filter(file_bundle_id=event.file_bundle_id).update(ignored=True)
+                Event.objects.filter(file_name=event.file_name).update(ignored=True)
                 ignored_entry, created = IgnoredEntry.objects.get_or_create(
-                    file_bundle_id=event.file_bundle_id
+                    file_name=event.file_name
                 )
 
                 if created:
-                    addlog(request.user, f"New ignored entry created with file_bundle_id: {event.file_bundle_id}")
+                    addlog(request.user, f"New ignored entry created with file_name: {event.file_name}")
+                    filenames.append(event.file_name)
+            toast = f"New ignored entry created for:\n" + ", ".join(filename for filename in filenames)
         else:
             print("Form not valid")
             print(form.errors)
     
     form = IgnoreEventForm()
-    return render(request, 'sleigh/events.html', {'configs': configs, 'profiles': profiles, 'form': form})
+    context = {'form': form}
+    if 'toast' in locals():
+        context['toast'] = toast
+    context.update(get_common_context())
+    return render(request, 'sleigh/events.html', context)
 
 def load_log_entry(request, event_id):
     log_entry = get_object_or_404(Event, id=event_id)
@@ -217,21 +231,19 @@ def load_log_entry(request, event_id):
 @login_required
 def changelog(request):
     """Displays changelog entries"""
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     entries = LogEntry.objects.all().order_by('-id')
-    context = {'configs': configs, 'profiles': profiles, 'entries': entries}
+    context = {'entries': entries}
+    context.update(get_common_context())
     return render(request, 'sleigh/changelog.html', context)
 
 ###### User Management ######
 @login_required
 def usermgmt(request):
     """Displays existing users"""
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     users = User.objects.all()
     form = CustomUserCreationForm()
-    context = {'configs': configs, 'profiles': profiles, 'users': users, 'create_form': form}
+    context = {'users': users, 'create_form': form}
+    context.update(get_common_context())
     return render(request, 'sleigh/usermgmt.html', context)
 
 class CustomLoginView(LoginView):

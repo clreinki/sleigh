@@ -56,7 +56,7 @@
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.stat3 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-minimize fa-2x text-gray-300"></i>
+                            <i class="fas fa-ban fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
+                    <div class="chart-pie">
                         <canvas id="myPieChart"></canvas>
                     </div>
                     <div class="mt-4 text-center small">
@@ -127,7 +127,7 @@
 
 {% block extra_js %}
 <!-- Page level plugins -->
-<script src="{% static 'sleigh/vendor/chart.js/Chart.min.js' %}"></script>
+<script src="{% static 'sleigh/vendor/chart.js/chart.umd.min.js' %}"></script>
 
 <!-- Page level custom scripts -->
 <script>
@@ -221,9 +221,6 @@
         labels: {{ pie_chart.labels|safe }},  // Labels for macOS versions
         datasets: [{
           data: {{ pie_chart.data|safe }},  // Data counts for macOS versions
-          backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#e74a3b', '#f6c23e'],  // Customize colors
-          hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#e14a28', '#d9a21e'],
-          hoverBorderColor: "rgba(234, 236, 244, 1)",
         }],
       },
       options: {
@@ -241,7 +238,12 @@
         legend: {
           display: true
         },
-        cutoutPercentage: 80,
+        cutoutPercentage: 90,
+        plugins: {
+            colors: {
+                forceOverride: true
+            }
+        }
       },
     });
 </script>

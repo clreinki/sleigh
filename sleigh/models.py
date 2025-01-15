@@ -115,10 +115,10 @@ class Event(models.Model):
         return f"({self.decision}) {self.serial_num} - {self.file_sha256}"
 
 class IgnoredEntry(models.Model):
-    file_bundle_id = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.file_bundle_id
+        return self.file_name
 
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now=True)

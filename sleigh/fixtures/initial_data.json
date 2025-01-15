@@ -23,5 +23,23 @@
         "description": "Default profile for all devices",
         "standalone": false
     }
+},
+{
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$600000$g79OBbhdyFrFuxEuB69QnA$UmRyD+cmUgXtzIT/7tXsSPWerLqJ2xc5ImylDFzxXqE=",
+        "last_login": "2025-01-03T18:43:39Z",
+        "is_superuser": false,
+        "username": "sleighadmin",
+        "first_name": "Sleigh",
+        "last_name": "Admin",
+        "email": "you@email.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2024-11-20T13:47:56Z",
+        "groups": [],
+        "user_permissions": []
+    }
 }
 ]
