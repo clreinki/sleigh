@@ -172,7 +172,7 @@ def device_inventory(request):
                     addlog(request.user,f"Updated assigned config to {config.name} for {device.serial_num}")
                     cache.delete(device.serial_num)
                     serials.append(device.serial_num)
-                toast = f"Updated assigned profile to {profile.name} for:\n" + ", ".join(serial for serial in serials)
+                toast = f"Updated assigned config to {config.name} for:\n" + ", ".join(serial for serial in serials)
 
             elif action == 'update_profile':
                 profile_id = request.POST.get('profile_id')
