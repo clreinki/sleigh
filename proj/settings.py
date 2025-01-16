@@ -29,12 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = config('DEBUG', cast=bool, default=False)
 SENTRY_DSN = config('SENTRY_DSN', default='')
 CACHETYPE = config('CACHETYPE', default="none")
+KEY_PREFIX = config('KEY_PREFIX', default="sleigh")
 
 if DEBUG:
     ALLOWED_HOSTS = ['*']
     SECRET_KEY = 'django-insecure-_%v4%m@1=s4jqcrfwxqq92cztbwczv57u!fvqstll##f&f%@zi'
 else:
-    #ALLOWED_HOSTS = ['app.foliotrakr.com']
     ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
     SECRET_KEY = config('SECRET_KEY')
 
@@ -118,6 +118,7 @@ elif CACHETYPE == "REDIS":
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": os.environ.get('REDIS_URL'),
             "TIMEOUT": 900,
+            "KEY_PREFIX": KEY_PREFIX,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             }
