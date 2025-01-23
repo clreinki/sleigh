@@ -14,6 +14,7 @@ from django.conf import settings
 import json
 import zlib
 import logging
+import asyncio
 from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
@@ -347,7 +348,7 @@ def eventupload(request, serial):
             for event_data in events:
                 # Send to Elasticsearch if applicable
                 if settings.ELASTIC_URL:
-                    send_to_elastic(event_data, serial)
+                    asyncio.run(send_to_elastic(event_data, serial))
                     continue
 
                 # Check if already ignored
