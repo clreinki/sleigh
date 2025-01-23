@@ -18,7 +18,7 @@ from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm, ChangePasswordForm
-from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart, get_common_context
+from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart, get_common_context, send_to_elastic
 
 logger = logging.getLogger('django')
 
@@ -345,6 +345,11 @@ def eventupload(request, serial):
             events = data.get('events', [])
             
             for event_data in events:
+                # Send to Elasticsearch if applicable
+                if settings.ELASTIC_URL:
+                    send_to_elastic(event_data, serial)
+                    continue
+
                 # Check if already ignored
                 file_name=event_data.get('file_name')
                 if IgnoredEntry.objects.filter(file_name=file_name).exists():

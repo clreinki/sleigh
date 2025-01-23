@@ -174,6 +174,9 @@ if DEBUG:
         
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
+# Elasticsearch integration (optional)
+ELASTIC_URL = config('ELASTIC_URL', default=None)
+
 # Sentry Logging
 sentry_sdk.init(
     # Set traces_sample_rate to 1.0 to capture 100%
@@ -204,6 +207,7 @@ EMAIL_PORT = config('EMAIL_PORT', default='25')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+DEFAULT_FROM_EMAIL = config('EMAIL_FROM', default='webmaster@localhost')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

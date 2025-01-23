@@ -4,6 +4,10 @@ from datetime import timedelta
 from django.db.models import Count, F
 import json
 import zlib
+from django.conf import settings
+import httpx
+import asyncio
+from sentry_sdk import capture_exception
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
 
@@ -149,3 +153,17 @@ def get_common_context():
     profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     context = {'configs': configs, 'profiles': profiles}
     return context
+
+async def send_to_elastic(event_data, serial):
+    url = settings.ELASTIC_URL
+    event_data['serial'] = serial
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url, json=event_data, timeout=5)
+            response.raise_for_status()  # Raise exception for HTTP errors
+            capture_exception(f"Successfully sent event to Elasticsearch: {response.status_code}")
+        except httpx.RequestError as e:
+            capture_exception(f"Request error while sending event to Elasticsearch: {e}")
+        except httpx.HTTPStatusError as e:
+            capture_exception(f"HTTP error while sending event to Elasticsearch: {e.response.status_code} {e.response.text}")
