@@ -162,8 +162,7 @@ async def send_to_elastic(event_data, serial):
         try:
             response = await client.post(url, json=event_data, timeout=5)
             response.raise_for_status()  # Raise exception for HTTP errors
-            capture_exception(f"Successfully sent event to Elasticsearch: {response.status_code}")
         except httpx.RequestError as e:
-            capture_exception(f"Request error while sending event to Elasticsearch: {e}")
+            capture_exception(e)
         except httpx.HTTPStatusError as e:
-            capture_exception(f"HTTP error while sending event to Elasticsearch: {e.response.status_code} {e.response.text}")
+            capture_exception(e)
