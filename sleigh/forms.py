@@ -88,6 +88,10 @@ class CustomLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control form-control-user mb-4', 'placeholder': 'Password'})
     )
 
+class ChangePasswordForm(forms.Form):
+    old_password = forms.CharField(widget=forms.PasswordInput())
+    new_password = forms.CharField(widget=forms.PasswordInput())
+    confirm_password = forms.CharField(widget=forms.PasswordInput())
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:

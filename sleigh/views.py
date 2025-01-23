@@ -4,7 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.contrib.auth.models import User
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
 from django.http import Http404, JsonResponse, HttpResponse, HttpResponseServerError
 from django.core.cache import cache
 from django.conf import settings
@@ -14,7 +17,7 @@ import logging
 from sentry_sdk import capture_exception, capture_message
 
 from .models import Config, Profile, Rule, Device, LogEntry, Event, IgnoredEntry
-from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm
+from .forms import RegisterForm, CustomLoginForm, CustomUserCreationForm, ConfigEditForm, ProfileEditForm, RuleAddForm, DeviceObjectForm, IgnoreEventForm, ChangePasswordForm
 from .custom import addlog, get_client_preflight, get_client_rules, get_dashboard_stats, get_client_info, delete_cache_keys, events_chart, macos_version_pie_chart, get_common_context
 
 logger = logging.getLogger('django')
@@ -248,6 +251,13 @@ def usermgmt(request):
 
 class CustomLoginView(LoginView):
     authentication_form = CustomLoginForm
+
+class ChangePasswordView(PasswordChangeView):
+    form_class = PasswordChangeForm
+    success_url = reverse_lazy('sleigh:index')
+
+class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
+    success_url = reverse_lazy('login')
 
 @login_required
 def create_user_processing(request):
