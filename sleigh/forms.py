@@ -8,6 +8,8 @@ from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 import datetime
 from crispy_forms.helper import FormHelper
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Config, Profile, Rule, Device, Event
 
@@ -74,9 +76,21 @@ class DeviceObjectForm(forms.Form):
 class IgnoreEventForm(forms.Form):
     # Use a Event instance's id as the checkbox value
     events = forms.ModelMultipleChoiceField(
-        queryset=Event.objects.filter(ignored=False).order_by('-id'),
+        queryset=Event.objects.none(),
         widget=forms.CheckboxSelectMultiple
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get the current date and time
+        today = timezone.now().date()
+        # Calculate the date 14 days ago
+        start_date = today - timedelta(days=14)
+        # Dynamically set the queryset
+        self.fields['events'].queryset = Event.objects.filter(
+            ignored=False,
+            timestamp__date__gte=start_date
+        ).order_by('-id')
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(

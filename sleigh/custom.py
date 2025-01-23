@@ -96,8 +96,8 @@ def delete_cache_keys(prefix):
 def events_chart():
     # Get the current date and time
     today = timezone.now().date()
-    # Calculate the date 30 days ago
-    start_date = today - timedelta(days=30)
+    # Calculate the date 14 days ago
+    start_date = today - timedelta(days=14)
 
     # Query the database for event counts grouped by date
     events_by_day = (

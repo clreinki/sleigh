@@ -198,8 +198,6 @@ def device_inventory(request):
 ###### Santa Events ######
 @login_required
 def events(request):
-    configs = cache.get_or_set("cache_allconfigs", Config.objects.all(), None)
-    profiles = cache.get_or_set("cache_allprofiles", Profile.objects.all(), None)
     if request.method == 'POST':
         # Handling form submission
         form = IgnoreEventForm(request.POST)

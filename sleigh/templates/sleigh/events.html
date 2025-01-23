@@ -31,10 +31,24 @@
         {% csrf_token %}
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 text-gray-800">Santa Events</h1>
+            {% if not ELASTIC_VAR %}
             <button type="submit" class="btn btn-sm btn-primary shadow-sm" id="submit-button" disabled>Ignore Selected</button>
+            {% endif %}
         </div>
         <div class="card shadow mb-4">
             <div class="card-body">
+                {% if ELASTIC_VAR %}
+                <div class="text-center p-4">
+                    <div>
+                        Event data being logged to Elasticsearch ({{ ELASTIC_VAR }})
+                    </div>
+                    {% if ELASTICLINK_VAR %}
+                    <div class="mt-4">
+                        <a href="{{ ELASTICLINK_VAR }}" class="btn btn-primary btn-lg" target="_blank" rel="noopener noreferrer">Open Elasticsearch</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" id="tblevents">
                         <thead>
@@ -65,6 +79,7 @@
                         </tbody>
                     </table>
                 </div>
+                {% endif %}
             </div>
         </div>
     </form>
