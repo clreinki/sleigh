@@ -36,7 +36,7 @@ if DEBUG:
     SECRET_KEY = 'django-insecure-_%v4%m@1=s4jqcrfwxqq92cztbwczv57u!fvqstll##f&f%@zi'
 else:
     ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
-    SECRET_KEY = config('SECRET_KEY')
+    SECRET_KEY = config('SECRET_KEY', default='@^so$dr0h1=q_+w*3cuow90t4*8pqzgtcqldcaxo)^(+%5qf+e')
 
 
 # Application definition
@@ -92,9 +92,6 @@ WSGI_APPLICATION = 'proj.wsgi.application'
 if DEBUG == False:
     DATABASES = {}
     DATABASES['default'] = dj_database_url.config(conn_max_age=600)
-    # Not a database setting but force HTTPS for production sites
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
 else:
     DATABASES = {    
         'default': {        
@@ -262,3 +259,6 @@ django_heroku.settings(locals())
 
 if DEBUG == False:
     del DATABASES['default']['OPTIONS']['sslmode']
+    # Force HTTPS for production sites
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
