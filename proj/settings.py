@@ -258,7 +258,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 django_heroku.settings(locals())
 
 if DEBUG == False:
-    del DATABASES['default']['OPTIONS']['sslmode']
     # Force HTTPS for production sites
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
