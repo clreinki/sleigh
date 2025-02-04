@@ -1,0 +1,13 @@
+spec:
+  name: sleigh
+  services:
+    - name: sleigh-python
+      git:
+        branch: main
+        repo_clone_url: https://github.com/clreinki/sleigh.git&refcode=fd652045edeb
+      envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${sleigh-db.DATABASE_URL}
+    databases:
+    - name: sleigh-db
