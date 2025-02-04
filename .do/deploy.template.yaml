@@ -4,7 +4,7 @@ spec:
   - name: sleigh-python
     git:
       branch: main
-      repo_clone_url: https://github.com/clreinki/sleigh.git&refcode=fd652045edeb
+      repo_clone_url: https://github.com/clreinki/sleigh.git
     envs:
     - key: DATABASE_URL
       scope: RUN_TIME
