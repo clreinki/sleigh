@@ -20,7 +20,7 @@
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "standard"
+      "size": "standard-1X"
     }
   },
   "addons": [
