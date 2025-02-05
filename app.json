@@ -5,7 +5,7 @@
   "logo": "https://sleigh.cloud/images/sleigh_blue.png",
   "website": "https://sleigh.cloud/",
   "scripts": {
-    "postdeploy": "python manage.py migrate && python manage.py createcachetable"
+    "postdeploy": "python manage.py migrate"
   },
   "env": {
     "SECRET_KEY": {
@@ -13,8 +13,8 @@
       "generator": "secret"
     },
     "CACHETYPE": {
-      "description": "The number of processes to run.",
-      "value": "DB"
+      "description": "Caching type to use",
+      "value": "REDIS"
     }
   },
   "formation": {
@@ -25,10 +25,13 @@
   },
   "addons": [
     {
-      "plan": "heroku-postgresql",
+      "plan": "heroku-postgresql:essential-1",
       "options": {
         "version": "16"
       }
+    },
+    {
+      "plan": "heroku-redis:mini"
     }
   ]
 }
