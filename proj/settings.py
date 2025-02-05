@@ -119,6 +119,9 @@ elif CACHETYPE == "REDIS":
             "KEY_PREFIX": KEY_PREFIX,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {
+                    "ssl_cert_reqs": None
+                },
             }
         }
     }
