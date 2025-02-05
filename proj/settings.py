@@ -111,20 +111,35 @@ if CACHETYPE == "DB":
         }
     }
 elif CACHETYPE == "REDIS":
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": os.environ.get('REDIS_URL'),
-            "TIMEOUT": 900,
-            "KEY_PREFIX": KEY_PREFIX,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "CONNECTION_POOL_KWARGS": {
-                    "ssl_cert_reqs": None
-                },
+    # Logic necessary for self signed Redis SSL connections
+    redis_url = os.environ.get('REDIS_URL')
+    if redis_url.startswith("rediss"):
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": os.environ.get('REDIS_URL'),
+                "TIMEOUT": 900,
+                "KEY_PREFIX": KEY_PREFIX,
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                    "CONNECTION_POOL_KWARGS": {
+                        "ssl_cert_reqs": None
+                    },
+                }
             }
         }
-    }
+    else:
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": os.environ.get('REDIS_URL'),
+                "TIMEOUT": 900,
+                "KEY_PREFIX": KEY_PREFIX,
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient"
+                }
+            }
+        }
 else:
     CACHES = {
         'default': {
