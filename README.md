@@ -1,5 +1,5 @@
 [![Deploy to DO](https://www.deploytodo.com/do-btn-blue-ghost.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/clreinki/sleigh/tree/main&refcode=fd652045edeb)
-
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy?template=https://github.com/clreinki/sleigh)
 
 ## Overview
 Sleigh is a Django-based management server for managing the [Santa](https://northpole.dev/) configurations across your environment.  It combines a highly performant server-client communication platform with a simple to use web interface for easy management and reporting.

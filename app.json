@@ -1,0 +1,34 @@
+{
+  "name": "Sleigh",
+  "description": "Sleigh is a Django-based management server for managing the Santa configurations",
+  "repository": "https://github.com/clreinki/sleigh",
+  "logo": "https://sleigh.cloud/images/sleigh_blue.png",
+  "website": "https://sleigh.cloud/",
+  "scripts": {
+    "postdeploy": "python manage.py migrate && python manage.py createcachetable"
+  },
+  "env": {
+    "SECRET_KEY": {
+      "description": "Django secret key",
+      "generator": "secret"
+    },
+    "CACHETYPE": {
+      "description": "The number of processes to run.",
+      "value": "DB"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql",
+      "options": {
+        "version": "16"
+      }
+    }
+  ]
+}
