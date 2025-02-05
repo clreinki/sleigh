@@ -12,5 +12,8 @@ spec:
     - key: CACHETYPE
       scope: RUN_TIME
       value: "DB"
+    - key: DJANGO_ALLOWED_HOSTS
+      scope: RUN_TIME
+      value: ${APP_DOMAIN}
   databases:
   - name: sleigh-db
