@@ -28,6 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
 SENTRY_DSN = config('SENTRY_DSN', default='')
+SENTRY_SAMPLE_RATE = float(config('SENTRY_SAMPLE_RATE', default='0.1'))
 CACHETYPE = config('CACHETYPE', default="none")
 KEY_PREFIX = config('KEY_PREFIX', default="sleigh")
 
@@ -196,7 +197,7 @@ ELASTIC_URL = config('ELASTIC_URL', default=None)
 sentry_sdk.init(
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for tracing.
-    traces_sample_rate=0.1,
+    traces_sample_rate=SENTRY_SAMPLE_RATE,
     send_default_pii=True,
     _experiments={
         # Set continuous_profiling_auto_start to True
